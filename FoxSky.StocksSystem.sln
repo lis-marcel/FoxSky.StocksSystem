@@ -9,6 +9,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Services", "Services", "{98
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FoxSky.StocksSystem.CoreService", "src\Services\FoxSky.StocksSystem.CoreService\FoxSky.StocksSystem.CoreService.csproj", "{778B6E02-E5D8-41BC-8DCC-FD5BF30273A8}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{C8E42992-5E42-0C2B-DBFE-AA848D06431C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -38,5 +40,9 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{984BB9B3-3FA3-BE33-9484-CAC21695A33C} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{778B6E02-E5D8-41BC-8DCC-FD5BF30273A8} = {984BB9B3-3FA3-BE33-9484-CAC21695A33C}
+		{C8E42992-5E42-0C2B-DBFE-AA848D06431C} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {8E44A82E-1C1E-4EAA-B7A4-E299AD26C4D1}
 	EndGlobalSection
 EndGlobal
