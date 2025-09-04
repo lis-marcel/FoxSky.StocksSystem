@@ -1,5 +1,3 @@
-using System.Net.Http;
-
 namespace FoxSky.StocksSystem.StocksProvider.WebServices;
 
 public class StocksProvider
