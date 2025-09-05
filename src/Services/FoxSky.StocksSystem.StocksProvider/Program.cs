@@ -1,4 +1,6 @@
-﻿namespace FoxSky.StocksSystem.StocksProvider;
+﻿using FoxSky.StocksService.SharedServices;
+
+namespace FoxSky.StocksSystem.StocksProvider;
 
 class Program
 {
@@ -6,7 +8,7 @@ class Program
 
     public static void Main(string[] args)
     {
-        EnvReader.EnvReader.Load();
+        EnvReader.Load();
 
         var apiKey = Environment.GetEnvironmentVariable("STOCKS_API_KEY");
         var apiUrl = Environment.GetEnvironmentVariable("STOCKS_API_URL");

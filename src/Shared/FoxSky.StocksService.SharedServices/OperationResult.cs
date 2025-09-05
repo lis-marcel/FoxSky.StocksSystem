@@ -1,4 +1,4 @@
-﻿namespace FoxSky.StocksSystem.OperationResult;
+﻿namespace FoxSky.StocksService.SharedServices;
 
 public class OperationResult
 {

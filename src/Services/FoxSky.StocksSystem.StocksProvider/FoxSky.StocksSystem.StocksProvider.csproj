@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Shared\FoxSky.StocksSystem.EnvReader\FoxSky.StocksSystem.EnvReader.csproj" />
+    <ProjectReference Include="..\..\Shared\FoxSky.StocksService.SharedServices\FoxSky.StocksService.SharedServices.csproj" />
   </ItemGroup>
 
 </Project>
