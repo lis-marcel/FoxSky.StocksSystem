@@ -1,0 +1,48 @@
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+build/
+bld/
+[Bb]in/
+[Oo]bj/
+msbuild.log
+
+# Visual Studio files
+.vs/
+*.user
+*.userosscache
+*.suo
+*.userprefs
+*.dbmdl
+*.jfm
+*.pfx
+*.publishsettings
+
+# NuGet packages
+*.nupkg
+**/packages/*
+project.lock.json
+project.assets.json
+
+# Local development files
+appsettings.Development.json
+*.Development.json
+launchSettings.json
+
+# Git files
+.git/
+.gitignore
+.gitattributes
+
+# Docker files (optional)
+**/.dockerignore
+**/docker-compose*.yml
+**/Dockerfile*
+
+# Test results
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
