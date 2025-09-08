@@ -1,10 +1,12 @@
+using FoxSky.StocksService.SharedServices;
+
 namespace FoxSky.StocksSystem.StocksProvider.WebServices;
 
 public class StocksProvider
 {
     private readonly static string _ticker = "LMT";
 
-    public static async Task GetStocks(HttpClient httpClient, string apiKey)
+    public static async Task<OperationResult> GetStocks(HttpClient httpClient, string apiKey)
     {
         try
         {
@@ -16,12 +18,12 @@ public class StocksProvider
                 Console.WriteLine("Failed to download data.");
             }
 
-            Console.WriteLine("Data downloaded successfully.");
-            Console.WriteLine(responseMessage.Content.ReadAsStringAsync().Result);
+            return OperationResult.Succeeded(data: responseMessage.Content);
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error connecting to the stock service: {ex.Message}");
+            return OperationResult.Failed(message: ex.Message);
         }
     }
 }

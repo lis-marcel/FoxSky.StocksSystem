@@ -1,4 +1,5 @@
 ﻿using FoxSky.StocksService.SharedServices;
+using FoxSky.StocksSystem.StocksProvider.MessageQueue;
 
 namespace FoxSky.StocksSystem.StocksProvider;
 
@@ -6,7 +7,7 @@ class Program
 {
     private readonly static HttpClient _httpClient = new();
 
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
         EnvReader.Load();
 
@@ -18,6 +19,14 @@ class Program
 
         _httpClient.BaseAddress = new Uri(apiUrl);
 
-        WebServices.StocksProvider.GetStocks(_httpClient, apiKey).GetAwaiter().GetResult();
+        using var messageQueue = await MessageQueue.MessageQueue.CreateAsync();
+
+        var stocksResult = await WebServices.StocksProvider.GetStocks(_httpClient, apiKey);
+
+        if (stocksResult.Success)
+        {
+            await messageQueue.PublishMessageAsync(stocksResult.Data!.ToString()!);
+            Console.WriteLine("[StocksService] Sent stock data to 'stocks' queue");
+        }
     }
 }
