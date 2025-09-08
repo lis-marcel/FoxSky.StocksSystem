@@ -18,7 +18,9 @@ public class StocksProvider
                 Console.WriteLine("Failed to download data.");
             }
 
-            return OperationResult.Succeeded(data: responseMessage.Content);
+            var strippedResponse = responseMessage.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+
+            return OperationResult.Succeeded(data: strippedResponse);
         }
         catch (Exception ex)
         {

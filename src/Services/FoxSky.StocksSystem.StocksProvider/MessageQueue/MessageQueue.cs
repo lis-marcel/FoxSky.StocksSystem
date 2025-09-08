@@ -21,7 +21,7 @@ namespace FoxSky.StocksSystem.StocksProvider.MessageQueue
         private MessageQueue()
         {
             var messageUri = Environment.GetEnvironmentVariable("MESSAGE_BROKER_URI");
-            var clientName = Environment.GetEnvironmentVariable("MESSAGE_BROKER_CLIENT_NAME");
+            var clientName = Environment.GetEnvironmentVariable("MESSAGE_BROKER_PROVIDER_NAME");
             _exchangeName = Environment.GetEnvironmentVariable("STOCKS_EXCHANGE")!;
             _routingKey = Environment.GetEnvironmentVariable("ROUTING_KEY")!;
             _queueName = Environment.GetEnvironmentVariable("QUEUE_NAME")!;
@@ -71,6 +71,17 @@ namespace FoxSky.StocksSystem.StocksProvider.MessageQueue
         public async Task PublishMessageAsync(string message)
         {
             var body = Encoding.UTF8.GetBytes(message);
+
+            await _channel.BasicPublishAsync(
+                exchange: _exchangeName,
+                routingKey: _routingKey,
+                body: body);
+        }
+
+        public async Task PublishMessageAsync<T>(T obj)
+        {
+            var json = System.Text.Json.JsonSerializer.Serialize(obj);
+            var body = Encoding.UTF8.GetBytes(json);
 
             await _channel.BasicPublishAsync(
                 exchange: _exchangeName,
