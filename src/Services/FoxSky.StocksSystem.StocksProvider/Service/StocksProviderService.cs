@@ -1,8 +1,8 @@
 using FoxSky.StocksService.SharedServices;
 
-namespace FoxSky.StocksSystem.StocksProvider.WebServices;
+namespace FoxSky.StocksSystem.StocksProvider.Service;
 
-public class StocksProvider
+public class StocksProviderService
 {
     private readonly static string _ticker = "LMT";
 

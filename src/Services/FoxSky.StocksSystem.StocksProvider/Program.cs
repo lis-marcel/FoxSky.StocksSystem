@@ -19,9 +19,9 @@ class Program
 
         _httpClient.BaseAddress = new Uri(apiUrl);
 
-        using var messageQueue = await MessageQueue.MessageQueue.CreateAsync();
+        using var messageQueue = await MessageQueue.MessageQueueService.CreateAsync();
 
-        var stocksResult = await WebServices.StocksProvider.GetStocks(_httpClient, apiKey);
+        var stocksResult = await Service.StocksProviderService.GetStocks(_httpClient, apiKey);
 
         if (stocksResult.Success)
         {

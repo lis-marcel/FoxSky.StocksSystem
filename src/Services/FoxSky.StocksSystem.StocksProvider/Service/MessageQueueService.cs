@@ -3,7 +3,7 @@ using System.Text;
 
 namespace FoxSky.StocksSystem.StocksProvider.MessageQueue
 {
-    internal class MessageQueue : IDisposable
+    internal class MessageQueueService : IDisposable
     {
         private readonly IConnection _connection;
         private readonly IChannel _channel;
@@ -11,14 +11,14 @@ namespace FoxSky.StocksSystem.StocksProvider.MessageQueue
         private readonly string _routingKey;
         private readonly string _queueName;
 
-        public static async Task<MessageQueue> CreateAsync()
+        public static async Task<MessageQueueService> CreateAsync()
         {
-            var messageQueue = new MessageQueue();
+            var messageQueue = new MessageQueueService();
             await messageQueue.InitializeAsync();
             return messageQueue;
         }
 
-        private MessageQueue()
+        private MessageQueueService()
         {
             var messageUri = Environment.GetEnvironmentVariable("MESSAGE_BROKER_URI");
             var clientName = Environment.GetEnvironmentVariable("MESSAGE_BROKER_PROVIDER_NAME");
