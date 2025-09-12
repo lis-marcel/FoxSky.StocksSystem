@@ -1,14 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using FoxSky.StocksService.SharedServices;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using System.Text;
+using System.Text.Json;
 
-namespace FoxSky.StocksService.Traders.MessageReceiver
+namespace FoxSky.StocksService.Traders.MessageQueueHandler
 {
-    internal class MessageReceiver : IDisposable
+    internal class MessageQueueHandler : IDisposable
     {
         private readonly IConnection _connection;
         private readonly IChannel _channel;
@@ -17,7 +15,7 @@ namespace FoxSky.StocksService.Traders.MessageReceiver
         private readonly string _queueName;
         private AsyncEventingBasicConsumer? _consumer;
 
-        public MessageReceiver() 
+        public MessageQueueHandler() 
         {
             var messageUri = Environment.GetEnvironmentVariable("MESSAGE_BROKER_URI");
             var clientName = Environment.GetEnvironmentVariable("MESSAGE_BROKER_CONSUMER_NAME");
@@ -40,9 +38,9 @@ namespace FoxSky.StocksService.Traders.MessageReceiver
             _channel = _connection.CreateChannelAsync().GetAwaiter().GetResult();
         }
              
-        public static async Task<MessageReceiver> CreateAsync()
+        public static async Task<MessageQueueHandler> CreateAsync()
         {
-            var messageQueue = new MessageReceiver();
+            var messageQueue = new MessageQueueHandler();
             await messageQueue.InitializeAsync();
             return messageQueue;
         }
@@ -61,6 +59,13 @@ namespace FoxSky.StocksService.Traders.MessageReceiver
                 autoDelete: false,
                 arguments: null);
 
+            await _channel.ExchangeDeclareAsync(
+                exchange: _exchangeName,
+                type: ExchangeType.Direct,
+                durable: false,
+                autoDelete: false,
+                arguments: null);
+
             await _channel.BasicQosAsync(
                 prefetchSize: 0,
                 prefetchCount: 1,
@@ -75,9 +80,12 @@ namespace FoxSky.StocksService.Traders.MessageReceiver
             {
                 var body = ea.Body.ToArray();
                 var message = Encoding.UTF8.GetString(body);
+
                 Console.WriteLine($"[StocksService] Received stock data: {message}");
+
                 // Simulate processing time
                 await Task.Delay(500);
+
                 // Acknowledge the message
                 await _channel.BasicAckAsync(ea.DeliveryTag, multiple: false);
             };

@@ -6,11 +6,11 @@ public class Program
 {
     public static void Main(string[] args)
     {
-        Console.WriteLine("Hello, Traders!");
+        Console.WriteLine("[Traders service]");
 
         EnvReader.Load();
 
-        using var messageReceiver = MessageReceiver.MessageReceiver.CreateAsync().GetAwaiter().GetResult();
+        using var messageReceiver = MessageQueueHandler.MessageQueueHandler.CreateAsync().GetAwaiter().GetResult();
 
         messageReceiver.ReceiveMessageAsync().GetAwaiter().GetResult();
     }
