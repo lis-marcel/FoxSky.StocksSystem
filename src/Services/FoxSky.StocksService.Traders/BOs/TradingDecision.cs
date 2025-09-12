@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace FoxSky.StocksService.Traders.BOs
+﻿namespace FoxSky.StocksService.Traders.BOs
 {
-    public class TradingStrategies
+    public class TradingDecision
     {
         public string Ticker { get; set; } = string.Empty;
         public TradingAction Action { get; set; }

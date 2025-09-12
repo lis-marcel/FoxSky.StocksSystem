@@ -1,4 +1,5 @@
 ﻿using FoxSky.StocksService.SharedServices;
+using FoxSky.StocksService.Traders.Services;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
@@ -13,6 +14,7 @@ namespace FoxSky.StocksService.Traders.MessageQueueHandler
         private readonly string _exchangeName;
         private readonly string _routingKey;
         private readonly string _queueName;
+        private readonly ITradersService _tradersService;
         private AsyncEventingBasicConsumer? _consumer;
 
         public MessageQueueHandler() 
@@ -36,6 +38,7 @@ namespace FoxSky.StocksService.Traders.MessageQueueHandler
 
             _connection = factory.CreateConnectionAsync().GetAwaiter().GetResult();
             _channel = _connection.CreateChannelAsync().GetAwaiter().GetResult();
+            _tradersService = new TradersService();
         }
              
         public static async Task<MessageQueueHandler> CreateAsync()
@@ -72,7 +75,7 @@ namespace FoxSky.StocksService.Traders.MessageQueueHandler
                 global: false);
         }
 
-        public async Task ReceiveMessageAsync()
+        public async Task<OperationResult> ReceiveMessageAsync()
         {
             _consumer = new AsyncEventingBasicConsumer(_channel);
 
@@ -83,11 +86,24 @@ namespace FoxSky.StocksService.Traders.MessageQueueHandler
 
                 Console.WriteLine($"[StocksService] Received stock data: {message}");
 
-                // Simulate processing time
-                await Task.Delay(500);
+                try
+                {
+                    var result = await _tradersService.ProcessStockDataAsync(message);
 
-                // Acknowledge the message
-                await _channel.BasicAckAsync(ea.DeliveryTag, multiple: false);
+                    if (result.Success)
+                    {
+                        Console.WriteLine($"[StocksService] Successfully processed stock data: {result.Message}");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"[StocksService] Failed to process stock data: {result.Message}");
+                    }
+
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[StocksService] Error processing message: {ex.Message}");
+                }
             };
 
             string consumerTag = await _channel.BasicConsumeAsync(
@@ -102,6 +118,8 @@ namespace FoxSky.StocksService.Traders.MessageQueueHandler
             await _channel.BasicCancelAsync(consumerTag);
             await _channel.CloseAsync();
             await _connection.CloseAsync();
+
+            return OperationResult.Succeeded("Message processing completed");
         }
 
         public void Dispose()
