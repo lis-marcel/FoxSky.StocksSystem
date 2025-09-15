@@ -36,8 +36,13 @@ namespace FoxSky.StocksService.Traders.Services
         {
             try
             {
-                Console.WriteLine($"Processing stock data for {stockData.Ticker} at {stockData.Timestamp}");
-                Console.WriteLine($"Open: {stockData.Open}, Close: {stockData.Close}, High: {stockData.High}, Low: {stockData.Low}, Volume: {stockData.Volume}");
+                Console.WriteLine($"Processing stock data for {stockData.Ticker} at {stockData.Results[0].Timestamp}");
+                Console.WriteLine(
+                    $"Open: {stockData.Results[0].Open}," +
+                    $" Close: {stockData.Results[0].Close}," +
+                    $" High: {stockData.Results[0].High}," +
+                    $" Low: {stockData.Results[0].Low}," +
+                    $" Volume: {stockData.Results[0].Volume}");
 
                 var signal = await _tradingStrategy.GenerateSignalAsync(stockData);
                 Console.WriteLine($"Generated Signal: {signal.Type} with confidence {signal.Strength:F1}% - {signal.Description}");
