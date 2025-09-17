@@ -6,12 +6,20 @@ public class Program
 {
     public static void Main(string[] args)
     {
-        Console.WriteLine("[Traders service]");
+        try
+        {
+            Console.WriteLine("[Traders service]");
 
-        EnvReader.Load();
+            EnvReader.Load();
 
-        using var messageReceiver = MessageQueueHandler.MessageQueueHandler.CreateAsync().GetAwaiter().GetResult();
+            using var messageReceiver = MessageQueueHandler.MessageQueueHandler.CreateAsync().GetAwaiter().GetResult();
 
-        messageReceiver.ReceiveMessageAsync().GetAwaiter().GetResult();
+            messageReceiver.ReceiveMessageAsync().GetAwaiter().GetResult();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Traders service] Fatal error: {ex.Message}");
+            return;
+        }
     }
 }

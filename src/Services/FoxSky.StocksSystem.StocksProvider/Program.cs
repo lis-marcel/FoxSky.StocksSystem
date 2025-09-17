@@ -1,5 +1,5 @@
 ﻿using FoxSky.StocksService.SharedServices;
-using FoxSky.StocksSystem.StocksProvider.MessageQueue;
+using FoxSky.StocksSystem.StocksProvider.MessageQueueHandler;
 
 namespace FoxSky.StocksSystem.StocksProvider;
 
@@ -19,7 +19,7 @@ class Program
 
         _httpClient.BaseAddress = new Uri(apiUrl);
 
-        using var messageQueue = await MessageQueue.MessageQueueService.CreateAsync();
+        using var messageQueue = await MessageQueueService.CreateAsync();
 
         var stocksResult = await Service.StocksProviderService.GetStocks(_httpClient, apiKey);
 

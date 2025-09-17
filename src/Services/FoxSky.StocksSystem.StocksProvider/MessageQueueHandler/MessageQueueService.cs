@@ -1,7 +1,7 @@
 ﻿using RabbitMQ.Client;
 using System.Text;
 
-namespace FoxSky.StocksSystem.StocksProvider.MessageQueue
+namespace FoxSky.StocksSystem.StocksProvider.MessageQueueHandler
 {
     internal class MessageQueueService : IDisposable
     {
@@ -9,12 +9,11 @@ namespace FoxSky.StocksSystem.StocksProvider.MessageQueue
         private readonly IChannel _channel;
         private readonly string _exchangeName;
         private readonly string _routingKey;
-        private readonly string _queueName;
 
         public static async Task<MessageQueueService> CreateAsync()
         {
             var messageQueue = new MessageQueueService();
-            await messageQueue.InitializeAsync();
+            await messageQueue.ConfigureExchange();
             return messageQueue;
         }
 
@@ -22,13 +21,11 @@ namespace FoxSky.StocksSystem.StocksProvider.MessageQueue
         {
             var messageUri = Environment.GetEnvironmentVariable("MESSAGE_BROKER_URI");
             var clientName = Environment.GetEnvironmentVariable("MESSAGE_BROKER_PROVIDER_NAME");
-            _exchangeName = Environment.GetEnvironmentVariable("STOCKS_EXCHANGE")!;
+            _exchangeName = Environment.GetEnvironmentVariable("STOCKS_PROVIDER_EXCHANGE")!;
             _routingKey = Environment.GetEnvironmentVariable("ROUTING_KEY")!;
-            _queueName = Environment.GetEnvironmentVariable("QUEUE_NAME")!;
 
             if (string.IsNullOrEmpty(messageUri) || string.IsNullOrEmpty(clientName) ||
-                string.IsNullOrEmpty(_exchangeName) || string.IsNullOrEmpty(_routingKey) ||
-                string.IsNullOrEmpty(_queueName))
+                string.IsNullOrEmpty(_exchangeName) || string.IsNullOrEmpty(_routingKey))
                 throw new ArgumentNullException("Message broker configuration is not set in environment variables.");
 
             var factory = new ConnectionFactory()
@@ -41,31 +38,14 @@ namespace FoxSky.StocksSystem.StocksProvider.MessageQueue
             _channel = _connection.CreateChannelAsync().GetAwaiter().GetResult();
         }
 
-        private async Task InitializeAsync()
-        {
-            await ConfigureMessageBrokerAsync();
-        }
-
-        private async Task ConfigureMessageBrokerAsync()
+        private async Task ConfigureExchange()
         {
             await _channel.ExchangeDeclareAsync(
                 exchange: _exchangeName,
-                type: ExchangeType.Direct,
+                type: ExchangeType.Topic,
                 durable: false,
                 autoDelete: false,
                 arguments: null);
-
-            await _channel.QueueDeclareAsync(
-                queue: _queueName,
-                durable: false,
-                exclusive: false,
-                autoDelete: false,
-                arguments: null);
-
-            await _channel.QueueBindAsync(
-                queue: _queueName,
-                exchange: _exchangeName,
-                routingKey: _routingKey);
         }
 
         public async Task PublishMessageAsync(string message)
