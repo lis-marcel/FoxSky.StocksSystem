@@ -1,5 +1,5 @@
 ﻿using FoxSky.StocksService.SharedServices;
-using FoxSky.StocksSystem.StocksProvider.MessageQueueHandler;
+using FoxSky.StocksSystem.StocksProvider.MessageHandler;
 
 namespace FoxSky.StocksSystem.StocksProvider;
 

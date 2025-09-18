@@ -14,7 +14,7 @@ public class Program
             EnvReader.Load();
 
             // Use the static CreateAsync method
-            var messageQueueHandler = await MessageQueueHandler.MessageQueueHandler.CreateAsync();
+            var messageQueueHandler = await MessageQueueHandler.TradersMessageBroker.CreateAsync();
             
             Console.WriteLine("[Traders service] Initialized. Starting to receive messages...");
             var processingResult = await messageQueueHandler.ReceiveMessageAsync();

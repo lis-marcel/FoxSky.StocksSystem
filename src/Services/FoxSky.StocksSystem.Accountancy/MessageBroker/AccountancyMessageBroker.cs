@@ -4,9 +4,9 @@ using RabbitMQ.Client.Events;
 using System.Text;
 using FoxSky.StocksSystem.Accountancy.Services;
 
-namespace FoxSky.StocksSystem.Accountancy.MessageQueueHandler
+namespace FoxSky.StocksSystem.Accountancy.MessageBroker
 {
-    internal class MessageQueueHandler : IDisposable
+    internal class AccountancyMessageBroker : IDisposable
     {
         private readonly IConnection _connection;
         private readonly IChannel _channel;
@@ -19,7 +19,7 @@ namespace FoxSky.StocksSystem.Accountancy.MessageQueueHandler
         private readonly IAccountancyService _accountancyService;
         private AsyncEventingBasicConsumer? _consumer;
 
-        public MessageQueueHandler()
+        public AccountancyMessageBroker()
         {
             var messageUri = Environment.GetEnvironmentVariable("MESSAGE_BROKER_URI");
             _accountancyExchangeName = Environment.GetEnvironmentVariable("ACCOUNTANCY_EXCHANGE_NAME")!;
@@ -45,9 +45,9 @@ namespace FoxSky.StocksSystem.Accountancy.MessageQueueHandler
             _accountancyService = new AccountancyService();
         }
              
-        public static async Task<MessageQueueHandler> CreateAsync()
+        public static async Task<AccountancyMessageBroker> CreateAsync()
         {
-            var messageQueue = new MessageQueueHandler();
+            var messageQueue = new AccountancyMessageBroker();
             await messageQueue.InitializeAsync();
             return messageQueue;
         }

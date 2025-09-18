@@ -1,23 +1,23 @@
 ﻿using RabbitMQ.Client;
 using System.Text;
 
-namespace FoxSky.StocksSystem.StocksProvider.MessageQueueHandler
+namespace FoxSky.StocksSystem.StocksProvider.MessageService
 {
-    internal class MessageQueueService : IDisposable
+    internal class StocksProviderMessageBroker : IDisposable
     {
         private readonly IConnection _connection;
         private readonly IChannel _channel;
         private readonly string _exchangeName;
         private readonly string _routingKey;
 
-        public static async Task<MessageQueueService> CreateAsync()
+        public static async Task<StocksProviderMessageBroker> CreateAsync()
         {
-            var messageQueue = new MessageQueueService();
+            var messageQueue = new StocksProviderMessageBroker();
             await messageQueue.ConfigureExchange();
             return messageQueue;
         }
 
-        private MessageQueueService()
+        private StocksProviderMessageBroker()
         {
             var messageUri = Environment.GetEnvironmentVariable("MESSAGE_BROKER_URI");
             _exchangeName = Environment.GetEnvironmentVariable("STOCKS_PROVIDER_EXCHANGE_NAME")!;

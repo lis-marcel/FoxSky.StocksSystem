@@ -6,7 +6,7 @@ using System.Text;
 
 namespace FoxSky.StocksService.Traders.MessageQueueHandler
 {
-    internal class MessageQueueHandler : IDisposable
+    internal class TradersMessageBroker : IDisposable
     {
         private readonly IConnection _connection;
         private readonly IChannel _channel;
@@ -18,7 +18,7 @@ namespace FoxSky.StocksService.Traders.MessageQueueHandler
         private readonly ITradersService _tradersService;
         private AsyncEventingBasicConsumer? _consumer;
 
-        public MessageQueueHandler() 
+        public TradersMessageBroker() 
         {
             var messageUri = Environment.GetEnvironmentVariable("MESSAGE_BROKER_URI");
             _tradersExchangeName = Environment.GetEnvironmentVariable("TRADERS_EXCHANGE_NAME")!;
@@ -42,9 +42,9 @@ namespace FoxSky.StocksService.Traders.MessageQueueHandler
             _tradersService = new TradersService();
         }
              
-        public static async Task<MessageQueueHandler> CreateAsync()
+        public static async Task<TradersMessageBroker> CreateAsync()
         {
-            var messageQueue = new MessageQueueHandler();
+            var messageQueue = new TradersMessageBroker();
             await messageQueue.InitializeAsync();
             return messageQueue;
         }

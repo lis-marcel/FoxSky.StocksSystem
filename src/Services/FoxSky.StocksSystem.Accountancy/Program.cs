@@ -11,7 +11,7 @@ public class Program
             Console.WriteLine("[Accountancy service] Starting...");
             EnvReader.Load();
 
-            var messageQueueHandler = MessageQueueHandler.MessageQueueHandler.CreateAsync().GetAwaiter().GetResult();
+            var messageQueueHandler = MessageQueueHandler.AccountancyMessageBroker.CreateAsync().GetAwaiter().GetResult();
 
             Console.WriteLine("[Accountancy service] Initialized. Starting to receive messages...");
             var processingResult = messageQueueHandler.ReceiveMessageAsync().GetAwaiter().GetResult();
