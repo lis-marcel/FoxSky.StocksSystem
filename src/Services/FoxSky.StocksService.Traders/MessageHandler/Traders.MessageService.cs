@@ -13,6 +13,7 @@ namespace FoxSky.StocksService.Traders.MessageQueueHandler
         private readonly string _stocksProviderExchangeName;
         private readonly string _tradersExchangeName;
         private readonly string _stocksDataRoutingKey;
+        private readonly string _accountancyDataRoutingKey;
         private readonly string _tradersQueueName;
         private readonly ITradersService _tradersService;
         private AsyncEventingBasicConsumer? _consumer;
@@ -23,6 +24,7 @@ namespace FoxSky.StocksService.Traders.MessageQueueHandler
             _tradersExchangeName = Environment.GetEnvironmentVariable("TRADERS_EXCHANGE_NAME")!;
             _stocksProviderExchangeName = Environment.GetEnvironmentVariable("STOCKS_PROVIDER_EXCHANGE_NAME")!;
             _stocksDataRoutingKey = Environment.GetEnvironmentVariable("STOCKS_DATA_ROUTING_KEY")!;
+            _accountancyDataRoutingKey = Environment.GetEnvironmentVariable("ACCOUNTANCY_DATA_ROUTING_KEY")!;
             _tradersQueueName = Environment.GetEnvironmentVariable("TRADERS_QUEUE_NAME")!;
 
             if (string.IsNullOrEmpty(messageUri) || string.IsNullOrEmpty(_tradersExchangeName) ||
@@ -76,7 +78,7 @@ namespace FoxSky.StocksService.Traders.MessageQueueHandler
 
             await _channel.BasicPublishAsync(
                 exchange: _tradersExchangeName,
-                routingKey: _stocksDataRoutingKey,
+                routingKey: _accountancyDataRoutingKey,
                 body: body);
 
             Console.WriteLine($"[TradersService] Published message.");
@@ -90,7 +92,7 @@ namespace FoxSky.StocksService.Traders.MessageQueueHandler
 
             await _channel.BasicPublishAsync(
                 exchange: _tradersExchangeName,
-                routingKey: _stocksDataRoutingKey,
+                routingKey: _accountancyDataRoutingKey,
                 body: body);
 
             Console.WriteLine($"[TradersService] Published message.");
