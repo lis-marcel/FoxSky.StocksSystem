@@ -8,22 +8,25 @@ public class Program
     {
         try
         {
-            Console.WriteLine("[Traders service]");
+            Console.WriteLine("[Accountancy service] Starting...");
             EnvReader.Load();
 
-            var messageQueueHandler = new MessageQueueHandler.MessageQueueHandler().CreateAsync().GetAwaiter().GetResult();
+            var messageQueueHandler = MessageQueueHandler.MessageQueueHandler.CreateAsync().GetAwaiter().GetResult();
 
+            Console.WriteLine("[Accountancy service] Initialized. Starting to receive messages...");
             var processingResult = messageQueueHandler.ReceiveMessageAsync().GetAwaiter().GetResult();
 
             if (!processingResult.Success)
             {
-                Console.WriteLine($"[Traders service] Error: {processingResult.Message}");
+                Console.WriteLine($"[Accountancy service] Error: {processingResult.Message}");
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[Traders service] Fatal error: {ex.Message}");
-            return;
+            Console.WriteLine($"[Accountancy service] Fatal error: {ex.Message}");
+            Console.WriteLine(ex.StackTrace);
+            Console.WriteLine("Press any key to exit...");
+            Console.ReadKey();
         }
     }
 }

@@ -12,8 +12,10 @@ namespace FoxSky.StocksSystem.Accountancy.MessageQueueHandler
         private readonly IChannel _channel;
         private readonly string _stocksProviderExchangeName;
         private readonly string _accountancyExchangeName;
+        private readonly string _accountancyDataRoutingKey;
         private readonly string _ceoDataRoutingKey;
         private readonly string _accountancyQueueName;
+        private readonly string _tradersExchangeName;
         private readonly IAccountancyService _accountancyService;
         private AsyncEventingBasicConsumer? _consumer;
 
@@ -21,12 +23,16 @@ namespace FoxSky.StocksSystem.Accountancy.MessageQueueHandler
         {
             var messageUri = Environment.GetEnvironmentVariable("MESSAGE_BROKER_URI");
             _accountancyExchangeName = Environment.GetEnvironmentVariable("ACCOUNTANCY_EXCHANGE_NAME")!;
+            _stocksProviderExchangeName = Environment.GetEnvironmentVariable("STOCKS_PROVIDER_EXCHANGE_NAME")!;
             _ceoDataRoutingKey = Environment.GetEnvironmentVariable("CEO_DATA_ROUTING_KEY")!;
             _accountancyQueueName = Environment.GetEnvironmentVariable("ACCOUNTANCY_QUEUE_NAME")!;
+            _accountancyDataRoutingKey = Environment.GetEnvironmentVariable("ACCOUNTANCY_DATA_ROUTING_KEY")!;
+            _tradersExchangeName = Environment.GetEnvironmentVariable("TRADERS_EXCHANGE_NAME")!;
 
             if (string.IsNullOrEmpty(messageUri) || string.IsNullOrEmpty(_accountancyExchangeName) ||
                 string.IsNullOrEmpty(_stocksProviderExchangeName) || string.IsNullOrEmpty(_ceoDataRoutingKey) ||
-                string.IsNullOrEmpty(_accountancyQueueName))
+                string.IsNullOrEmpty(_accountancyQueueName) || string.IsNullOrEmpty(_tradersExchangeName) ||
+                string.IsNullOrEmpty(_accountancyDataRoutingKey))
                 throw new ArgumentNullException("Message broker configuration is not set in environment variables.");
 
             var factory = new ConnectionFactory()
@@ -38,8 +44,8 @@ namespace FoxSky.StocksSystem.Accountancy.MessageQueueHandler
             _channel = _connection.CreateChannelAsync().GetAwaiter().GetResult();
             _accountancyService = new AccountancyService();
         }
-
-        public async Task<MessageQueueHandler> CreateAsync()
+             
+        public static async Task<MessageQueueHandler> CreateAsync()
         {
             var messageQueue = new MessageQueueHandler();
             await messageQueue.InitializeAsync();
@@ -48,6 +54,8 @@ namespace FoxSky.StocksSystem.Accountancy.MessageQueueHandler
 
         private async Task InitializeAsync()
         {
+            Console.WriteLine("[AccountancyService] Initializing message queues and exchanges...");
+            
             await _channel.QueueDeclareAsync(
                 queue: _accountancyQueueName,
                 durable: false,
@@ -55,18 +63,48 @@ namespace FoxSky.StocksSystem.Accountancy.MessageQueueHandler
                 autoDelete: false,
                 arguments: null);
 
+            Console.WriteLine($"[AccountancyService] Declared queue: {_accountancyQueueName}");
+
             await _channel.ExchangeDeclareAsync(
                 exchange: _accountancyExchangeName,
                 type: ExchangeType.Topic,
                 durable: false,
                 autoDelete: false,
                 arguments: null);
+                
+            Console.WriteLine($"[AccountancyService] Declared exchange: {_accountancyExchangeName}");
 
-            await _channel.QueueBindAsync(
-                queue: _accountancyQueueName,
-                exchange: _stocksProviderExchangeName,
-                routingKey: _ceoDataRoutingKey
-                );
+            // Bind to stocks provider exchange
+            try
+            {
+                await _channel.QueueBindAsync(
+                    queue: _accountancyQueueName,
+                    exchange: _stocksProviderExchangeName,
+                    routingKey: _ceoDataRoutingKey);
+                    
+                Console.WriteLine($"[AccountancyService] Bound queue to stocks provider exchange with routing key: {_ceoDataRoutingKey}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[AccountancyService] Error binding to stocks provider exchange: {ex.Message}");
+            }
+
+            // Bind to traders exchange
+            try
+            {
+                await _channel.QueueBindAsync(
+                    queue: _accountancyQueueName,
+                    exchange: _tradersExchangeName, 
+                    routingKey: _accountancyDataRoutingKey);
+                    
+                Console.WriteLine($"[AccountancyService] Bound queue to traders exchange with routing key: {_accountancyDataRoutingKey}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[AccountancyService] Error binding to traders exchange: {ex.Message}");
+            }
+            
+            Console.WriteLine("[AccountancyService] Message queue initialization completed");
         }
 
         public async Task PublishMessageAsync(string message)
@@ -79,7 +117,6 @@ namespace FoxSky.StocksSystem.Accountancy.MessageQueueHandler
                 body: body);
 
             Console.WriteLine($"[AccountancyService] Published message.");
-            Console.ReadLine();
         }
 
         public async Task PublishMessageAsync<T>(T obj)
@@ -93,7 +130,6 @@ namespace FoxSky.StocksSystem.Accountancy.MessageQueueHandler
                 body: body);
 
             Console.WriteLine($"[AccountancyService] Published message.");
-            Console.ReadLine();
         }
 
         public async Task<OperationResult> ReceiveMessageAsync()
@@ -104,8 +140,9 @@ namespace FoxSky.StocksSystem.Accountancy.MessageQueueHandler
             {
                 var body = ea.Body.ToArray();
                 var message = Encoding.UTF8.GetString(body);
+                var routingKey = ea.RoutingKey;
 
-                Console.WriteLine($"[AccountancyService] Received stock data.");
+                Console.WriteLine($"[AccountancyService] Received message with routing key: {routingKey}");
 
                 try
                 {
@@ -113,13 +150,12 @@ namespace FoxSky.StocksSystem.Accountancy.MessageQueueHandler
 
                     if (result.Success)
                     {
-                        Console.WriteLine($"[AccountancyService] Successfully processed stock data: {result.Message}");
+                        Console.WriteLine($"[AccountancyService] Successfully processed message: {result.Message}");
                     }
                     else
                     {
-                        Console.WriteLine($"[AccountancyService] Failed to process stock data: {result.Message}");
+                        Console.WriteLine($"[AccountancyService] Failed to process message: {result.Message}");
                     }
-
                 }
                 catch (Exception ex)
                 {
@@ -133,7 +169,7 @@ namespace FoxSky.StocksSystem.Accountancy.MessageQueueHandler
                 consumer: _consumer);
 
             Console.WriteLine($"[AccountancyService] Waiting for messages. Consumer tag: {consumerTag}");
-            Console.WriteLine("Press [enter] to exit.");
+            Console.WriteLine("[AccountancyService] Press [enter] to exit.");
             Console.ReadLine();
 
             await _channel.BasicCancelAsync(consumerTag);

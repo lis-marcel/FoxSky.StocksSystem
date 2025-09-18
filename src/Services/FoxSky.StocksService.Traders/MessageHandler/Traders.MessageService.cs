@@ -29,7 +29,7 @@ namespace FoxSky.StocksService.Traders.MessageQueueHandler
 
             if (string.IsNullOrEmpty(messageUri) || string.IsNullOrEmpty(_tradersExchangeName) ||
                 string.IsNullOrEmpty(_stocksProviderExchangeName) || string.IsNullOrEmpty(_stocksDataRoutingKey) ||
-                string.IsNullOrEmpty(_tradersQueueName))
+                string.IsNullOrEmpty(_accountancyDataRoutingKey) || string.IsNullOrEmpty(_tradersQueueName))
                 throw new ArgumentNullException("Message broker configuration is not set in environment variables.");
 
             var factory = new ConnectionFactory()
@@ -42,7 +42,7 @@ namespace FoxSky.StocksService.Traders.MessageQueueHandler
             _tradersService = new TradersService();
         }
              
-        public async Task<MessageQueueHandler> CreateAsync()
+        public static async Task<MessageQueueHandler> CreateAsync()
         {
             var messageQueue = new MessageQueueHandler();
             await messageQueue.InitializeAsync();
@@ -51,12 +51,16 @@ namespace FoxSky.StocksService.Traders.MessageQueueHandler
 
         private async Task InitializeAsync()
         {
+            Console.WriteLine("[TradersService] Initializing message queues and exchanges...");
+            
             await _channel.QueueDeclareAsync(
                 queue: _tradersQueueName,
                 durable: false,
                 exclusive: false,
                 autoDelete: false,
                 arguments: null);
+                
+            Console.WriteLine($"[TradersService] Declared queue: {_tradersQueueName}");
 
             await _channel.ExchangeDeclareAsync(
                 exchange: _tradersExchangeName,
@@ -64,12 +68,17 @@ namespace FoxSky.StocksService.Traders.MessageQueueHandler
                 durable: false,
                 autoDelete: false,
                 arguments: null);
+                
+            Console.WriteLine($"[TradersService] Declared exchange: {_tradersExchangeName}");
 
             await _channel.QueueBindAsync(
                 queue: _tradersQueueName,
                 exchange: _stocksProviderExchangeName,
-                routingKey: _stocksDataRoutingKey
-                );
+                routingKey: _stocksDataRoutingKey);
+                
+            Console.WriteLine($"[TradersService] Bound queue to stocks provider exchange with routing key: {_stocksDataRoutingKey}");
+                
+            Console.WriteLine("[TradersService] Message queue initialization completed");
         }
 
         public async Task PublishMessageAsync(string message)
@@ -81,8 +90,7 @@ namespace FoxSky.StocksService.Traders.MessageQueueHandler
                 routingKey: _accountancyDataRoutingKey,
                 body: body);
 
-            Console.WriteLine($"[TradersService] Published message.");
-            Console.ReadLine();
+            Console.WriteLine($"[TradersService] Published message to exchange '{_tradersExchangeName}' with routing key '{_accountancyDataRoutingKey}'");
         }
 
         public async Task PublishMessageAsync<T>(T obj)
@@ -95,8 +103,7 @@ namespace FoxSky.StocksService.Traders.MessageQueueHandler
                 routingKey: _accountancyDataRoutingKey,
                 body: body);
 
-            Console.WriteLine($"[TradersService] Published message.");
-            Console.ReadLine();
+            Console.WriteLine($"[TradersService] Published message to exchange '{_tradersExchangeName}' with routing key '{_accountancyDataRoutingKey}'");
         }
 
         public async Task<OperationResult> ReceiveMessageAsync()
@@ -107,8 +114,9 @@ namespace FoxSky.StocksService.Traders.MessageQueueHandler
             {
                 var body = ea.Body.ToArray();
                 var message = Encoding.UTF8.GetString(body);
+                var routingKey = ea.RoutingKey;
 
-                Console.WriteLine($"[TradersService] Received stock data.");
+                Console.WriteLine($"[TradersService] Received stock data with routing key: {routingKey}");
 
                 try
                 {
@@ -117,12 +125,17 @@ namespace FoxSky.StocksService.Traders.MessageQueueHandler
                     if (result.Success)
                     {
                         Console.WriteLine($"[TradersService] Successfully processed stock data: {result.Message}");
+                        
+                        // After successful processing, publish the result to Accountancy
+                        if (result.Data != null)
+                        {
+                            await PublishMessageAsync(result.Data.ToString()!);
+                        }
                     }
                     else
                     {
                         Console.WriteLine($"[TradersService] Failed to process stock data: {result.Message}");
                     }
-
                 }
                 catch (Exception ex)
                 {
@@ -136,7 +149,7 @@ namespace FoxSky.StocksService.Traders.MessageQueueHandler
                 consumer: _consumer);
 
             Console.WriteLine($"[TradersService] Waiting for messages. Consumer tag: {consumerTag}");
-            Console.WriteLine("Press [enter] to exit.");
+            Console.WriteLine("[TradersService] Press [enter] to exit.");
             Console.ReadLine();
 
             await _channel.BasicCancelAsync(consumerTag);

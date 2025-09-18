@@ -10,22 +10,26 @@ public class Program
     {
         try
         {
-            Console.WriteLine("[Traders service]");
+            Console.WriteLine("[Traders service] Starting...");
             EnvReader.Load();
 
-            var messageQueueHandler = new MessageQueueHandler.MessageQueueHandler().CreateAsync().GetAwaiter().GetResult();
+            // Use the static CreateAsync method
+            var messageQueueHandler = await MessageQueueHandler.MessageQueueHandler.CreateAsync();
+            
+            Console.WriteLine("[Traders service] Initialized. Starting to receive messages...");
+            var processingResult = await messageQueueHandler.ReceiveMessageAsync();
 
-            var processingResult = messageQueueHandler.ReceiveMessageAsync().GetAwaiter().GetResult();
-
-            if (processingResult.Success)
+            if (!processingResult.Success)
             {
-                await messageQueueHandler.PublishMessageAsync(processingResult.Data!);
+                Console.WriteLine($"[Traders service] Error: {processingResult.Message}");
             }
         }
         catch (Exception ex)
         {
             Console.WriteLine($"[Traders service] Fatal error: {ex.Message}");
-            return;
+            Console.WriteLine(ex.StackTrace);
+            Console.WriteLine("Press any key to exit...");
+            Console.ReadKey();
         }
     }
 }
