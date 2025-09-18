@@ -15,7 +15,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FoxSky.StocksSystem.StocksP
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FoxSky.StocksService.SharedServices", "src\Shared\FoxSky.StocksService.SharedServices\FoxSky.StocksService.SharedServices.csproj", "{8A5C10AA-5950-4C8E-A067-E30D0C42FDD7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FoxSky.StocksService.Traders", "src\Services\FoxSky.StocksService.Traders\FoxSky.StocksService.Traders.csproj", "{8012A084-7C96-4D71-9CA3-912F4723F83B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FoxSky.StocksSystem.Traders", "src\Services\FoxSky.StocksService.Traders\FoxSky.StocksSystem.Traders.csproj", "{8012A084-7C96-4D71-9CA3-912F4723F83B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FoxSky.StocksSystem.Accountancy", "src\Services\FoxSky.StocksSystem.Accountancy\FoxSky.StocksSystem.Accountancy.csproj", "{0DCABC06-1C14-4137-82C5-080F66F0CC3D}"
 EndProject
