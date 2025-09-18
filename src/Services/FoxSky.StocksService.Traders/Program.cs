@@ -1,20 +1,26 @@
 ﻿using FoxSky.StocksService.SharedServices;
+using FoxSky.StocksService.Traders.MessageQueueHandler;
+using System.Threading.Tasks;
 
 namespace FoxSky.StocksService.Traders;
 
 public class Program
 {
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
         try
         {
             Console.WriteLine("[Traders service]");
-
             EnvReader.Load();
 
-            using var messageReceiver = MessageQueueHandler.MessageQueueHandler.CreateAsync().GetAwaiter().GetResult();
+            var messageQueueHandler = new MessageQueueHandler.MessageQueueHandler().CreateAsync().GetAwaiter().GetResult();
 
-            messageReceiver.ReceiveMessageAsync().GetAwaiter().GetResult();
+            var processingResult = messageQueueHandler.ReceiveMessageAsync().GetAwaiter().GetResult();
+
+            if (processingResult.Success)
+            {
+                await messageQueueHandler.PublishMessageAsync(processingResult.Data!);
+            }
         }
         catch (Exception ex)
         {
