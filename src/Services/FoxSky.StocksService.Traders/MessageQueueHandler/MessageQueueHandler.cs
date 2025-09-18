@@ -79,7 +79,7 @@ namespace FoxSky.StocksService.Traders.MessageQueueHandler
                 routingKey: _stocksDataRoutingKey,
                 body: body);
 
-            Console.WriteLine($"[StocksService] Published message.");
+            Console.WriteLine($"[TradersService] Published message.");
             Console.ReadLine();
         }
 
@@ -93,7 +93,7 @@ namespace FoxSky.StocksService.Traders.MessageQueueHandler
                 routingKey: _stocksDataRoutingKey,
                 body: body);
 
-            Console.WriteLine($"[StocksService] Published message.");
+            Console.WriteLine($"[TradersService] Published message.");
             Console.ReadLine();
         }
 
@@ -106,7 +106,7 @@ namespace FoxSky.StocksService.Traders.MessageQueueHandler
                 var body = ea.Body.ToArray();
                 var message = Encoding.UTF8.GetString(body);
 
-                Console.WriteLine($"[StocksService] Received stock data: {message}");
+                Console.WriteLine($"[TradersService] Received stock data.");
 
                 try
                 {
@@ -114,26 +114,26 @@ namespace FoxSky.StocksService.Traders.MessageQueueHandler
 
                     if (result.Success)
                     {
-                        Console.WriteLine($"[StocksService] Successfully processed stock data: {result.Message}");
+                        Console.WriteLine($"[TradersService] Successfully processed stock data: {result.Message}");
                     }
                     else
                     {
-                        Console.WriteLine($"[StocksService] Failed to process stock data: {result.Message}");
+                        Console.WriteLine($"[TradersService] Failed to process stock data: {result.Message}");
                     }
 
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"[StocksService] Error processing message: {ex.Message}");
+                    Console.WriteLine($"[TradersService] Error processing message: {ex.Message}");
                 }
             };
 
             string consumerTag = await _channel.BasicConsumeAsync(
                 queue: _tradersQueueName,
-                autoAck: false,
+                autoAck: true,
                 consumer: _consumer);
 
-            Console.WriteLine($"[StocksService] Waiting for messages. Consumer tag: {consumerTag}");
+            Console.WriteLine($"[TradersService] Waiting for messages. Consumer tag: {consumerTag}");
             Console.WriteLine("Press [enter] to exit.");
             Console.ReadLine();
 

@@ -1,6 +1,7 @@
 ﻿using FoxSky.StocksService.SharedServices;
 using FoxSky.StocksService.Traders.BOs;
 using System.ComponentModel.DataAnnotations;
+using System.Net.Sockets;
 
 namespace FoxSky.StocksService.Traders.Services
 {
@@ -36,7 +37,7 @@ namespace FoxSky.StocksService.Traders.Services
         {
             try
             {
-                Console.WriteLine($"Processing stock data for {stockData.Ticker} at {stockData.Results[0].Timestamp}");
+                Console.WriteLine($"Processing stock data for {stockData.Ticker} at {new DateTime(stockData.Results[0].Timestamp)}");
                 Console.WriteLine(
                     $"Open: {stockData.Results[0].Open}," +
                     $" Close: {stockData.Results[0].Close}," +
