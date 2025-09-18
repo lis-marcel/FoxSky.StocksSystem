@@ -10,29 +10,29 @@ namespace FoxSky.StocksService.Traders.MessageQueueHandler
     {
         private readonly IConnection _connection;
         private readonly IChannel _channel;
-        private readonly string _exchangeName;
-        private readonly string _routingKey;
-        private readonly string _queueName;
+        private readonly string _stocksProviderExchangeName;
+        private readonly string _tradersExchangeName;
+        private readonly string _stocksDataRoutingKey;
+        private readonly string _tradersQueueName;
         private readonly ITradersService _tradersService;
         private AsyncEventingBasicConsumer? _consumer;
 
         public MessageQueueHandler() 
         {
             var messageUri = Environment.GetEnvironmentVariable("MESSAGE_BROKER_URI");
-            //var clientName = Environment.GetEnvironmentVariable("MESSAGE_BROKER_CONSUMER_NAME");
-            _exchangeName = Environment.GetEnvironmentVariable("STOCKS_PROVIDER_EXCHANGE")!;
-            _routingKey = Environment.GetEnvironmentVariable("ROUTING_KEY")!;
-            _queueName = Environment.GetEnvironmentVariable("TRADERS_QUEUE_NAME")!;
+            _tradersExchangeName = Environment.GetEnvironmentVariable("TRADERS_EXCHANGE_NAME")!;
+            _stocksProviderExchangeName = Environment.GetEnvironmentVariable("STOCKS_PROVIDER_EXCHANGE_NAME")!;
+            _stocksDataRoutingKey = Environment.GetEnvironmentVariable("STOCKS_DATA_ROUTING_KEY")!;
+            _tradersQueueName = Environment.GetEnvironmentVariable("TRADERS_QUEUE_NAME")!;
 
-            if (string.IsNullOrEmpty(messageUri) || /*string.IsNullOrEmpty(clientName) ||*/
-                string.IsNullOrEmpty(_exchangeName) || string.IsNullOrEmpty(_routingKey) ||
-                string.IsNullOrEmpty(_queueName))
+            if (string.IsNullOrEmpty(messageUri) || string.IsNullOrEmpty(_tradersExchangeName) ||
+                string.IsNullOrEmpty(_stocksProviderExchangeName) || string.IsNullOrEmpty(_stocksDataRoutingKey) ||
+                string.IsNullOrEmpty(_tradersQueueName))
                 throw new ArgumentNullException("Message broker configuration is not set in environment variables.");
 
             var factory = new ConnectionFactory()
             {
                 Uri = new Uri(messageUri),
-                //ClientProvidedName = clientName
             };
 
             _connection = factory.CreateConnectionAsync().GetAwaiter().GetResult();
@@ -40,7 +40,7 @@ namespace FoxSky.StocksService.Traders.MessageQueueHandler
             _tradersService = new TradersService();
         }
              
-        public static async Task<MessageQueueHandler> CreateAsync()
+        public async Task<MessageQueueHandler> CreateAsync()
         {
             var messageQueue = new MessageQueueHandler();
             await messageQueue.InitializeAsync();
@@ -50,24 +50,51 @@ namespace FoxSky.StocksService.Traders.MessageQueueHandler
         private async Task InitializeAsync()
         {
             await _channel.QueueDeclareAsync(
-                queue: _queueName,
+                queue: _tradersQueueName,
                 durable: false,
                 exclusive: false,
                 autoDelete: false,
                 arguments: null);
 
             await _channel.ExchangeDeclareAsync(
-                exchange: _exchangeName,
+                exchange: _tradersExchangeName,
                 type: ExchangeType.Topic,
                 durable: false,
                 autoDelete: false,
                 arguments: null);
 
             await _channel.QueueBindAsync(
-                queue: _queueName,
-                exchange: _exchangeName,
-                routingKey: _routingKey
+                queue: _tradersQueueName,
+                exchange: _stocksProviderExchangeName,
+                routingKey: _stocksDataRoutingKey
                 );
+        }
+
+        public async Task PublishMessageAsync(string message)
+        {
+            var body = Encoding.UTF8.GetBytes(message);
+
+            await _channel.BasicPublishAsync(
+                exchange: _tradersExchangeName,
+                routingKey: _stocksDataRoutingKey,
+                body: body);
+
+            Console.WriteLine($"[StocksService] Published message.");
+            Console.ReadLine();
+        }
+
+        public async Task PublishMessageAsync<T>(T obj)
+        {
+            var json = System.Text.Json.JsonSerializer.Serialize(obj);
+            var body = Encoding.UTF8.GetBytes(json);
+
+            await _channel.BasicPublishAsync(
+                exchange: _tradersExchangeName,
+                routingKey: _stocksDataRoutingKey,
+                body: body);
+
+            Console.WriteLine($"[StocksService] Published message.");
+            Console.ReadLine();
         }
 
         public async Task<OperationResult> ReceiveMessageAsync()
@@ -102,7 +129,7 @@ namespace FoxSky.StocksService.Traders.MessageQueueHandler
             };
 
             string consumerTag = await _channel.BasicConsumeAsync(
-                queue: _queueName,
+                queue: _tradersQueueName,
                 autoAck: false,
                 consumer: _consumer);
 

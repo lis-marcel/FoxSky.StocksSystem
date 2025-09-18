@@ -20,18 +20,16 @@ namespace FoxSky.StocksSystem.StocksProvider.MessageQueueHandler
         private MessageQueueService()
         {
             var messageUri = Environment.GetEnvironmentVariable("MESSAGE_BROKER_URI");
-            var clientName = Environment.GetEnvironmentVariable("MESSAGE_BROKER_PROVIDER_NAME");
-            _exchangeName = Environment.GetEnvironmentVariable("STOCKS_PROVIDER_EXCHANGE")!;
-            _routingKey = Environment.GetEnvironmentVariable("ROUTING_KEY")!;
+            _exchangeName = Environment.GetEnvironmentVariable("STOCKS_PROVIDER_EXCHANGE_NAME")!;
+            _routingKey = Environment.GetEnvironmentVariable("STOCKS_DATA_ROUTING_KEY")!;
 
-            if (string.IsNullOrEmpty(messageUri) || string.IsNullOrEmpty(clientName) ||
+            if (string.IsNullOrEmpty(messageUri) ||
                 string.IsNullOrEmpty(_exchangeName) || string.IsNullOrEmpty(_routingKey))
                 throw new ArgumentNullException("Message broker configuration is not set in environment variables.");
 
             var factory = new ConnectionFactory()
             {
                 Uri = new Uri(messageUri),
-                ClientProvidedName = clientName
             };
 
             _connection = factory.CreateConnectionAsync().GetAwaiter().GetResult();
