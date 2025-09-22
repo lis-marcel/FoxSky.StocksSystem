@@ -129,7 +129,9 @@ namespace FoxSky.StocksService.Traders.MessageQueueHandler
                         // After successful processing, publish the result to Accountancy
                         if (result.Data != null)
                         {
-                            await PublishMessageAsync(result.Data.ToString()!);
+                            var stringifiedData = Newtonsoft.Json.JsonConvert.SerializeObject(result.Data);
+
+                            await PublishMessageAsync(stringifiedData!);
                         }
                     }
                     else

@@ -1,11 +1,12 @@
 ﻿using FoxSky.StocksService.SharedServices;
 using FoxSky.StocksService.Traders.BOs;
+using FoxSky.StocksSystem.Accountancy.Models;
 
 namespace FoxSky.StocksSystem.Accountancy.Services
 {
     internal interface IAccountancyService
     {
         Task<OperationResult> ProcessTradersRequestAsync(string data);
-        Task<OperationResult> ProcessTradersRequestAsync(StockData data);
+        Task<OperationResult> ProcessTradersRequestAsync(AccountancyRequest data);
     }
 }
