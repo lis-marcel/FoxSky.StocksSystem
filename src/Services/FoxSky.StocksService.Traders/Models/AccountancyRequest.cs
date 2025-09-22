@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 
 namespace FoxSky.StocksSystem.Traders.Models
 {
-    public class AccountancyRequest
+    public class AccountancyRequest(string ticker, int quantity, decimal price, TradingAction tradingAction, DateTime decistionTime)
     {
-        public string Ticker { get; set; } = string.Empty;
-        public int Quantity { get; set; }
-        public decimal Price { get; set; }
-        public TradingAction TradingAction { get; set; }
-        public DateTime DecisionTime { get; set; } = DateTime.UtcNow;
+        public string Ticker { get; set; } = ticker;
+        public int Quantity { get; set; } = quantity;
+        public decimal Price { get; set; } = price;
+        public TradingAction TradingAction { get; set; } = tradingAction;
+        public DateTime DecisionTime { get; set; } = decistionTime;
     }
 }

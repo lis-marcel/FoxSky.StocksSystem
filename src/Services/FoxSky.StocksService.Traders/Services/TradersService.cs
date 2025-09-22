@@ -50,14 +50,15 @@ namespace FoxSky.StocksSystem.Traders.Services
                 Console.WriteLine($"[TradersService] Decision: {decision.Action} {decision.Quantity} shares at ${decision.Price}");
                 Console.WriteLine($"[TradersService] Reason: {decision.Reason} (Confidence: {decision.Confidence:F1}%)");
 
-                var result = new
-                {
-                    StockData = stockData,
-                    TradingSignal = signal,
-                    TradingDecision = decision
-                };
+                var accountancyRequest = new AccountancyRequest(
+                    decision.Ticker,
+                    decision.Quantity,
+                    decision.Price,
+                    decision.Action,
+                    decision.DecisionTime
+                );
 
-                return OperationResult.Succeeded("Stock data processed successfully.", result);
+                return OperationResult.Succeeded("Stock data processed successfully.", accountancyRequest);
             }
             catch (Exception ex)
             {
