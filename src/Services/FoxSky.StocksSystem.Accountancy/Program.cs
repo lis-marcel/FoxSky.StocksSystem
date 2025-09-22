@@ -1,4 +1,5 @@
 ﻿using FoxSky.StocksService.SharedServices;
+using FoxSky.StocksSystem.Accountancy.MessageBroker;
 
 namespace FoxSky.StocksSystem.Accountancy;
 
@@ -11,7 +12,7 @@ public class Program
             Console.WriteLine("[Accountancy service] Starting...");
             EnvReader.Load();
 
-            var messageQueueHandler = MessageQueueHandler.AccountancyMessageBroker.CreateAsync().GetAwaiter().GetResult();
+            var messageQueueHandler = AccountancyMessageBroker.CreateAsync().GetAwaiter().GetResult();
 
             Console.WriteLine("[Accountancy service] Initialized. Starting to receive messages...");
             var processingResult = messageQueueHandler.ReceiveMessageAsync().GetAwaiter().GetResult();

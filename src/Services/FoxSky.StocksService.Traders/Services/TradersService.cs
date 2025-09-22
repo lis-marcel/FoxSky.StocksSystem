@@ -1,9 +1,7 @@
 ﻿using FoxSky.StocksService.SharedServices;
-using FoxSky.StocksService.Traders.BOs;
-using System.ComponentModel.DataAnnotations;
-using System.Net.Sockets;
+using FoxSky.StocksSystem.Traders.Models;
 
-namespace FoxSky.StocksService.Traders.Services
+namespace FoxSky.StocksSystem.Traders.Services
 {
     public class TradersService : ITradersService
     {

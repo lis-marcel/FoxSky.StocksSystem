@@ -1,7 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using System.Text.Json.Serialization;
 
-namespace FoxSky.StocksService.Traders.BOs
+namespace FoxSky.StocksSystem.Traders.Models
 {
     public class StockData
     {
@@ -52,7 +52,7 @@ namespace FoxSky.StocksService.Traders.BOs
         public int Number { get; set; }
 
         public decimal PriceChange => Close - Open;
-        public decimal PriceChangePercent => Open != 0 ? (PriceChange / Open) * 100 : 0;
+        public decimal PriceChangePercent => Open != 0 ? PriceChange / Open * 100 : 0;
         public bool IsUpwardTrend => Close > Open;
         public decimal TypicalPrice => (High + Low + Close) / 3;
     }

@@ -9,9 +9,14 @@ namespace FoxSky.StocksSystem.Accountancy.Services
         {
             Thread.Sleep(500); // Simulate processing delay
 
-            Console.WriteLine($"[AccountancyService] Processing traders request with data: {data}");
+            var stockData = System.Text.Json.JsonSerializer.Deserialize<StockData>(data);
 
-            return OperationResult.Succeeded();
+            if (stockData == null)
+            {
+                return OperationResult.Failed("Failed to deserialize stock data.");
+            }
+
+            return OperationResult.Succeeded(data: stockData);
         }
 
         public async Task<OperationResult> ProcessTradersRequestAsync(StockData data)

@@ -1,4 +1,4 @@
-﻿namespace FoxSky.StocksService.Traders.BOs
+﻿namespace FoxSky.StocksSystem.Traders.Models
 {
     public class TradingDecision
     {

@@ -1,12 +1,7 @@
 ﻿using FoxSky.StocksService.SharedServices;
-using FoxSky.StocksService.Traders.BOs;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using FoxSky.StocksSystem.Traders.Models;
 
-namespace FoxSky.StocksService.Traders.Services
+namespace FoxSky.StocksSystem.Traders.Services
 {
     public interface ITradersService
     {

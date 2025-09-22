@@ -1,6 +1,6 @@
-﻿using FoxSky.StocksService.Traders.BOs;
+﻿using FoxSky.StocksSystem.Traders.Models;
 
-namespace FoxSky.StocksService.Traders.Services
+namespace FoxSky.StocksSystem.Traders.Services
 {
     public interface ITradingStrategy
     {
