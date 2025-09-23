@@ -10,25 +10,35 @@ namespace FoxSky.StocksSystem.Accountancy.Services
         {
             Thread.Sleep(500); // Simulate processing delay
 
-            var stockData = Newtonsoft.Json.JsonConvert.DeserializeObject<AccountancyRequest>(data);
+            var requestData = Newtonsoft.Json.JsonConvert.DeserializeObject<AccountancyRequest>(data);
 
-            if (stockData == null)
+            if (requestData == null)
             {
                 return OperationResult.Failed("Failed to deserialize stock data.");
             }
 
-            Console.WriteLine($"[AccountancyService] Processing traders request with data: {stockData.Ticker}, {stockData.Price}, {stockData.Quantity}");
+            Console.WriteLine($"[AccountancyService] Processing traders request with data: " +
+                $"{requestData.Ticker}, " +
+                $"{requestData.Price}, " +
+                $"{requestData.Quantity} " +
+                $"{requestData.TradingAction}, " +
+                $"{requestData.DecisionTime}");
 
-            return OperationResult.Succeeded(data: stockData);
+            return OperationResult.Succeeded(data: requestData);
         }
 
-        public async Task<OperationResult> ProcessTradersRequestAsync(AccountancyRequest data)
+        public async Task<OperationResult> ProcessTradersRequestAsync(AccountancyRequest requestData)
         {
             Thread.Sleep(500); // Simulate processing delay
 
-            Console.WriteLine($"[AccountancyService] Processing traders request with data: {data}");
+            Console.WriteLine($"[AccountancyService] Processing traders request with data: " +
+                $"{requestData.Ticker}, " +
+                $"{requestData.Price}, " +
+                $"{requestData.Quantity} " +
+                $"{requestData.TradingAction}, " +
+                $"{requestData.DecisionTime}");
 
-            return OperationResult.Succeeded();
+            return OperationResult.Succeeded(data: requestData);
         }
     }
 }
