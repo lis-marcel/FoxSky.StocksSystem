@@ -30,10 +30,10 @@ public class EnvReader
 
         while (currentDir != null)
         {
-            string envPath = Path.Combine(currentDir.FullName, ".env");
-            if (File.Exists(envPath))
+            string configPath = Path.Combine(currentDir.FullName, "Config\\.env");
+            if (File.Exists(configPath))
             {
-                return envPath;
+                return configPath;
             }
 
             currentDir = currentDir.Parent!;
