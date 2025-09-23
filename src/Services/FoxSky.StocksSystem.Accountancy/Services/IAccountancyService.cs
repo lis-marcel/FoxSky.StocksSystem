@@ -1,5 +1,4 @@
 ﻿using FoxSky.StocksService.SharedServices;
-using FoxSky.StocksService.Traders.BOs;
 using FoxSky.StocksSystem.Accountancy.Models;
 
 namespace FoxSky.StocksSystem.Accountancy.Services

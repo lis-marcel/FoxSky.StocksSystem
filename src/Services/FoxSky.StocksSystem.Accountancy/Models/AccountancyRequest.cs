@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace FoxSky.StocksSystem.Accountancy.Models
+﻿namespace FoxSky.StocksSystem.Accountancy.Models
 {
     public class AccountancyRequest(string ticker, int quantity, decimal price, TradingAction tradingAction, DateTime decistionTime)
     {
