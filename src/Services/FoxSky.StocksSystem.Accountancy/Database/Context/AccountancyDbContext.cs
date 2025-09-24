@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FoxSky.StocksSystem.Accountancy.Database.Context
 {
-    public class AccountancyDb : DbContext
+    public class AccountancyDbContext : DbContext
     {
         DbSet<Trade> Trades { get; set; }
     }

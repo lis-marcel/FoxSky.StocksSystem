@@ -3,10 +3,12 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
 using FoxSky.StocksSystem.Accountancy.Services;
+using Microsoft.EntityFrameworkCore;
+using FoxSky.StocksSystem.Accountancy.Database.Context;
 
 namespace FoxSky.StocksSystem.Accountancy.MessageBroker
 {
-    internal class AccountancyMessageBroker : IDisposable
+    internal class AccountancyMessageBroker : IAccountancyMessageBroker, IDisposable
     {
         private readonly IConnection _connection;
         private readonly IChannel _channel;
@@ -17,45 +19,46 @@ namespace FoxSky.StocksSystem.Accountancy.MessageBroker
         private readonly string _accountancyQueueName;
         private readonly string _tradersExchangeName;
         private readonly IAccountancyService _accountancyService;
+        private readonly AccountancyDbContext _dbContext;
         private AsyncEventingBasicConsumer? _consumer;
+        private bool _disposed;
+        private CancellationTokenSource? _cancellationTokenSource;
 
-        public AccountancyMessageBroker()
+        public AccountancyMessageBroker(AccountancyDbContext dbContext, IAccountancyService accountancyService)
         {
-            var messageUri = Environment.GetEnvironmentVariable("MESSAGE_BROKER_URI");
-            _accountancyExchangeName = Environment.GetEnvironmentVariable("ACCOUNTANCY_EXCHANGE_NAME")!;
-            _stocksProviderExchangeName = Environment.GetEnvironmentVariable("STOCKS_PROVIDER_EXCHANGE_NAME")!;
-            _ceoDataRoutingKey = Environment.GetEnvironmentVariable("CEO_DATA_ROUTING_KEY")!;
-            _accountancyQueueName = Environment.GetEnvironmentVariable("ACCOUNTANCY_QUEUE_NAME")!;
-            _accountancyDataRoutingKey = Environment.GetEnvironmentVariable("ACCOUNTANCY_DATA_ROUTING_KEY")!;
-            _tradersExchangeName = Environment.GetEnvironmentVariable("TRADERS_EXCHANGE_NAME")!;
+            _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+            _accountancyService = accountancyService ?? throw new ArgumentNullException(nameof(accountancyService));
 
-            if (string.IsNullOrEmpty(messageUri) || string.IsNullOrEmpty(_accountancyExchangeName) ||
-                string.IsNullOrEmpty(_stocksProviderExchangeName) || string.IsNullOrEmpty(_ceoDataRoutingKey) ||
-                string.IsNullOrEmpty(_accountancyQueueName) || string.IsNullOrEmpty(_tradersExchangeName) ||
-                string.IsNullOrEmpty(_accountancyDataRoutingKey))
-                throw new ArgumentNullException("Message broker configuration is not set in environment variables.");
+            var messageUri = Environment.GetEnvironmentVariable("MESSAGE_BROKER_URI")
+                ?? throw new InvalidOperationException("MESSAGE_BROKER_URI environment variable is not set");
 
-            var factory = new ConnectionFactory()
-            {
-                Uri = new Uri(messageUri),
-            };
+            _accountancyExchangeName = Environment.GetEnvironmentVariable("ACCOUNTANCY_EXCHANGE_NAME")
+                ?? throw new InvalidOperationException("ACCOUNTANCY_EXCHANGE_NAME environment variable is not set");
 
+            _stocksProviderExchangeName = Environment.GetEnvironmentVariable("STOCKS_PROVIDER_EXCHANGE_NAME")
+                ?? throw new InvalidOperationException("STOCKS_PROVIDER_EXCHANGE_NAME environment variable is not set");
+
+            _ceoDataRoutingKey = Environment.GetEnvironmentVariable("CEO_DATA_ROUTING_KEY")
+                ?? throw new InvalidOperationException("CEO_DATA_ROUTING_KEY environment variable is not set");
+
+            _accountancyQueueName = Environment.GetEnvironmentVariable("ACCOUNTANCY_QUEUE_NAME")
+                ?? throw new InvalidOperationException("ACCOUNTANCY_QUEUE_NAME environment variable is not set");
+
+            _accountancyDataRoutingKey = Environment.GetEnvironmentVariable("ACCOUNTANCY_DATA_ROUTING_KEY")
+                ?? throw new InvalidOperationException("ACCOUNTANCY_DATA_ROUTING_KEY environment variable is not set");
+
+            _tradersExchangeName = Environment.GetEnvironmentVariable("TRADERS_EXCHANGE_NAME")
+                ?? throw new InvalidOperationException("TRADERS_EXCHANGE_NAME environment variable is not set");
+
+            var factory = new ConnectionFactory { Uri = new Uri(messageUri) };
             _connection = factory.CreateConnectionAsync().GetAwaiter().GetResult();
             _channel = _connection.CreateChannelAsync().GetAwaiter().GetResult();
-            _accountancyService = new AccountancyService();
-        }
-             
-        public static async Task<AccountancyMessageBroker> CreateAsync()
-        {
-            var messageQueue = new AccountancyMessageBroker();
-            await messageQueue.InitializeAsync();
-            return messageQueue;
         }
 
-        private async Task InitializeAsync()
+        public async Task InitializeAsync()
         {
             Console.WriteLine("[AccountancyService] Initializing message queues and exchanges...");
-            
+
             await _channel.QueueDeclareAsync(
                 queue: _accountancyQueueName,
                 durable: false,
@@ -71,7 +74,7 @@ namespace FoxSky.StocksSystem.Accountancy.MessageBroker
                 durable: false,
                 autoDelete: false,
                 arguments: null);
-                
+
             Console.WriteLine($"[AccountancyService] Declared exchange: {_accountancyExchangeName}");
 
             // Bind to stocks provider exchange
@@ -81,7 +84,7 @@ namespace FoxSky.StocksSystem.Accountancy.MessageBroker
                     queue: _accountancyQueueName,
                     exchange: _stocksProviderExchangeName,
                     routingKey: _ceoDataRoutingKey);
-                    
+
                 Console.WriteLine($"[AccountancyService] Bound queue to stocks provider exchange with routing key: {_ceoDataRoutingKey}");
             }
             catch (Exception ex)
@@ -94,21 +97,22 @@ namespace FoxSky.StocksSystem.Accountancy.MessageBroker
             {
                 await _channel.QueueBindAsync(
                     queue: _accountancyQueueName,
-                    exchange: _tradersExchangeName, 
+                    exchange: _tradersExchangeName,
                     routingKey: _accountancyDataRoutingKey);
-                    
+
                 Console.WriteLine($"[AccountancyService] Bound queue to traders exchange with routing key: {_accountancyDataRoutingKey}");
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"[AccountancyService] Error binding to traders exchange: {ex.Message}");
             }
-            
+
             Console.WriteLine("[AccountancyService] Message queue initialization completed");
         }
 
         public async Task PublishMessageAsync(string message)
         {
+            ThrowIfDisposed();
             var body = Encoding.UTF8.GetBytes(message);
 
             await _channel.BasicPublishAsync(
@@ -116,26 +120,23 @@ namespace FoxSky.StocksSystem.Accountancy.MessageBroker
                 routingKey: _ceoDataRoutingKey,
                 body: body);
 
-            Console.WriteLine($"[AccountancyService] Published message.");
+            Console.WriteLine($"[AccountancyService] Published message");
         }
 
         public async Task PublishMessageAsync<T>(T obj)
         {
+            ThrowIfDisposed();
             var json = System.Text.Json.JsonSerializer.Serialize(obj);
-            var body = Encoding.UTF8.GetBytes(json);
-
-            await _channel.BasicPublishAsync(
-                exchange: _accountancyExchangeName,
-                routingKey: _ceoDataRoutingKey,
-                body: body);
-
-            Console.WriteLine($"[AccountancyService] Published message.");
+            await PublishMessageAsync(json);
         }
 
         public async Task<OperationResult> ReceiveMessageAsync()
         {
-            _consumer = new AsyncEventingBasicConsumer(_channel);
+            ThrowIfDisposed();
+            _cancellationTokenSource = new CancellationTokenSource();
+            var completionSource = new TaskCompletionSource<OperationResult>();
 
+            _consumer = new AsyncEventingBasicConsumer(_channel);
             _consumer.ReceivedAsync += async (model, ea) =>
             {
                 var body = ea.Body.ToArray();
@@ -169,20 +170,57 @@ namespace FoxSky.StocksSystem.Accountancy.MessageBroker
                 consumer: _consumer);
 
             Console.WriteLine($"[AccountancyService] Waiting for messages. Consumer tag: {consumerTag}");
-            Console.WriteLine("[AccountancyService] Press [enter] to exit.");
-            Console.ReadLine();
+            Console.WriteLine("[AccountancyService] Press Ctrl+C to exit.");
 
-            await _channel.BasicCancelAsync(consumerTag);
-            await _channel.CloseAsync();
-            await _connection.CloseAsync();
+            // Wait until cancellation is requested
+            await Task.Run(() =>
+            {
+                try
+                {
+                    _cancellationTokenSource.Token.WaitHandle.WaitOne();
+                    completionSource.SetResult(OperationResult.Succeeded("Message processing completed"));
+                }
+                catch (Exception ex)
+                {
+                    completionSource.SetResult(OperationResult.Failed($"Error during message processing: {ex.Message}"));
+                }
+            });
 
-            return OperationResult.Succeeded("Message processing completed");
+            return await completionSource.Task;
+        }
+
+        public async Task StopReceivingAsync()
+        {
+            if (_consumer != null)
+            {
+                try
+                {
+                    await _channel.BasicCancelAsync(_consumer.ConsumerTags.First());
+                    _cancellationTokenSource?.Cancel();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[AccountancyService] Error stopping consumer: {ex.Message}");
+                }
+            }
+        }
+
+        private void ThrowIfDisposed()
+        {
+            if (_disposed)
+                throw new ObjectDisposedException(nameof(AccountancyMessageBroker));
         }
 
         public void Dispose()
         {
+            if (_disposed) return;
+
+            _cancellationTokenSource?.Cancel();
+            _cancellationTokenSource?.Dispose();
             _channel?.Dispose();
             _connection?.Dispose();
+
+            _disposed = true;
         }
     }
 }
