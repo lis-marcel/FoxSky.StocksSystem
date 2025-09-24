@@ -20,11 +20,19 @@ public class Program
 
             using var scope = serviceProvider.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<AccountancyDbContext>();
+            
+            // Apply migrations to ensure database is up to date
+            Console.WriteLine("[AccountancyService] Applying database migrations...");
+            dbContext.Database.Migrate();
+            Console.WriteLine("[AccountancyService] Database migrations applied successfully.");
+
             var accountancyService = scope.ServiceProvider.GetRequiredService<IAccountancyService>();
+
             var messageQueueHandler = new AccountancyMessageBroker(dbContext, accountancyService);
             await messageQueueHandler.InitializeAsync();
 
             Console.WriteLine("[AccountancyService] Initialized. Starting to receive messages...");
+
             var processingResult = messageQueueHandler.ReceiveMessageAsync().GetAwaiter().GetResult();
 
             if (!processingResult.Success)
@@ -44,6 +52,8 @@ public class Program
     private static ServiceProvider ConfigureServices()
     {
         var services = new ServiceCollection();
+
+        var db = Environment.GetEnvironmentVariable("DB_HOST");
 
         services.AddDbContext<AccountancyDbContext>(options =>
             options.UseSqlite(Environment.GetEnvironmentVariable("DB_HOST")));
