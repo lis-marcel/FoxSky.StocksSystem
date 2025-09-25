@@ -3,8 +3,6 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
 using FoxSky.StocksSystem.Accountancy.Services;
-using Microsoft.EntityFrameworkCore;
-using FoxSky.StocksSystem.Accountancy.Database.Context;
 
 namespace FoxSky.StocksSystem.Accountancy.MessageBroker
 {
@@ -19,14 +17,12 @@ namespace FoxSky.StocksSystem.Accountancy.MessageBroker
         private readonly string _accountancyQueueName;
         private readonly string _tradersExchangeName;
         private readonly IAccountancyService _accountancyService;
-        private readonly AccountancyDbContext _dbContext;
         private AsyncEventingBasicConsumer? _consumer;
         private bool _disposed;
         private CancellationTokenSource? _cancellationTokenSource;
 
-        public AccountancyMessageBroker(AccountancyDbContext dbContext, IAccountancyService accountancyService)
+        public AccountancyMessageBroker(IAccountancyService accountancyService)
         {
-            _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
             _accountancyService = accountancyService ?? throw new ArgumentNullException(nameof(accountancyService));
 
             var messageUri = Environment.GetEnvironmentVariable("MESSAGE_BROKER_URI")
