@@ -59,31 +59,44 @@ public class Program
         
         // Extract the database path from the connection string
         var dataSourcePart = connectionString.Split(';')
-            .FirstOrDefault(part => part.Trim().StartsWith("Data Source=.", StringComparison.OrdinalIgnoreCase));
-            
+            .FirstOrDefault(part => part.Trim().StartsWith("Data Source=", StringComparison.OrdinalIgnoreCase));
+
+        DirectoryInfo currentDir = new(AppDomain.CurrentDomain.BaseDirectory);
+        string dbFolderPath = string.Empty;
+
+        while (currentDir != null)
+        {
+            dbFolderPath = Path.Combine(currentDir.FullName, "Database");
+
+            if (Directory.Exists(dbFolderPath))
+            {
+                currentDir = new DirectoryInfo(dbFolderPath);
+                break;
+            }
+
+            currentDir = currentDir.Parent!;
+        }
+
+        var dbPath = dataSourcePart!.Substring("Data Source=".Length).Trim();
+
         if (dataSourcePart != null)
         {
-            var dbPath = dataSourcePart.Substring("Data Source=".Length).Trim();
             
-            // Handle relative paths by converting them to absolute paths
-            if (!Path.IsPathRooted(dbPath))
-            {
-                // Resolve the path relative to the current directory
-                dbPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, dbPath);
+            // Resolve the path relative to the current directory
+            dbPath = Path.Combine(currentDir!.ToString(), dbPath);
                 
-                // Update the connection string with the absolute path
-                var newConnectionString = connectionString.Replace(dataSourcePart, $"Data Source={dbPath}");
-                Environment.SetEnvironmentVariable("DB_HOST", newConnectionString);
-                Console.WriteLine($"[AccountancyService] Using database at: {dbPath}");
-            }
+            // Update the connection string with the absolute path
+            var newConnectionString = connectionString.Replace(dataSourcePart, $"Data Source={dbPath}");
+            Environment.SetEnvironmentVariable("DB_HOST", newConnectionString);
+            Console.WriteLine($"[AccountancyService] Using database at: {dbPath}");
+        }
             
-            // Ensure the directory exists
-            var dbDirectory = Path.GetDirectoryName(dbPath);
-            if (!string.IsNullOrEmpty(dbDirectory) && !Directory.Exists(dbDirectory))
-            {
-                Console.WriteLine($"[AccountancyService] Creating database directory: {dbDirectory}");
-                Directory.CreateDirectory(dbDirectory);
-            }
+        // Ensure the directory exists
+        var dbDirectory = Path.GetDirectoryName(dbPath);
+        if (!string.IsNullOrEmpty(dbDirectory) && !Directory.Exists(dbDirectory))
+        {
+            Console.WriteLine($"[AccountancyService] Creating database directory: {dbDirectory}");
+            Directory.CreateDirectory(dbDirectory);
         }
     }
 
