@@ -4,6 +4,7 @@ using FoxSky.StocksSystem.Accountancy.MessageBroker;
 using FoxSky.StocksSystem.Accountancy.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using System.IO;
 
 namespace FoxSky.StocksSystem.Accountancy;
 
@@ -16,24 +17,27 @@ public class Program
             Console.WriteLine("[AccountancyService] Starting...");
             EnvReader.Load();
 
+            // Ensure the database directory exists
+            EnsureDatabaseDirectoryExists();
+            
             var serviceProvider = ConfigureServices();
 
-            using var scope = serviceProvider.CreateScope();
-            var dbContext = scope.ServiceProvider.GetRequiredService<AccountancyDbContext>();
-            
             // Apply migrations to ensure database is up to date
-            Console.WriteLine("[AccountancyService] Applying database migrations...");
-            dbContext.Database.Migrate();
-            Console.WriteLine("[AccountancyService] Database migrations applied successfully.");
+            using (var scope = serviceProvider.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<AccountancyDbContext>();
+                Console.WriteLine("[AccountancyService] Applying database migrations...");
+                dbContext.Database.Migrate();
+                Console.WriteLine("[AccountancyService] Database migrations applied successfully.");
+            }
 
-            var accountancyService = scope.ServiceProvider.GetRequiredService<IAccountancyService>();
-
-            var messageQueueHandler = new AccountancyMessageBroker(dbContext, accountancyService);
+            // Resolve the message broker from the service provider
+            var messageQueueHandler = serviceProvider.GetRequiredService<IAccountancyMessageBroker>();
             await messageQueueHandler.InitializeAsync();
 
             Console.WriteLine("[AccountancyService] Initialized. Starting to receive messages...");
 
-            var processingResult = messageQueueHandler.ReceiveMessageAsync().GetAwaiter().GetResult();
+            var processingResult = await messageQueueHandler.ReceiveMessageAsync();
 
             if (!processingResult.Success)
             {
@@ -49,18 +53,59 @@ public class Program
         }
     }
 
+    private static void EnsureDatabaseDirectoryExists()
+    {
+        var connectionString = Environment.GetEnvironmentVariable("DB_HOST") ?? string.Empty;
+        
+        // Extract the database path from the connection string
+        var dataSourcePart = connectionString.Split(';')
+            .FirstOrDefault(part => part.Trim().StartsWith("Data Source=.", StringComparison.OrdinalIgnoreCase));
+            
+        if (dataSourcePart != null)
+        {
+            var dbPath = dataSourcePart.Substring("Data Source=".Length).Trim();
+            
+            // Handle relative paths by converting them to absolute paths
+            if (!Path.IsPathRooted(dbPath))
+            {
+                // Resolve the path relative to the current directory
+                dbPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, dbPath);
+                
+                // Update the connection string with the absolute path
+                var newConnectionString = connectionString.Replace(dataSourcePart, $"Data Source={dbPath}");
+                Environment.SetEnvironmentVariable("DB_HOST", newConnectionString);
+                Console.WriteLine($"[AccountancyService] Using database at: {dbPath}");
+            }
+            
+            // Ensure the directory exists
+            var dbDirectory = Path.GetDirectoryName(dbPath);
+            if (!string.IsNullOrEmpty(dbDirectory) && !Directory.Exists(dbDirectory))
+            {
+                Console.WriteLine($"[AccountancyService] Creating database directory: {dbDirectory}");
+                Directory.CreateDirectory(dbDirectory);
+            }
+        }
+    }
+
     private static ServiceProvider ConfigureServices()
     {
         var services = new ServiceCollection();
 
-        var db = Environment.GetEnvironmentVariable("DB_HOST");
-
+        // Register DbContext as scoped
         services.AddDbContext<AccountancyDbContext>(options =>
             options.UseSqlite(Environment.GetEnvironmentVariable("DB_HOST")));
 
+        // Register AccountancyService as singleton (but now it creates DbContext instances as needed)
+        services.AddSingleton<IAccountancyService, AccountancyService>();
+        
+        // Register AccountancyMessageBroker as singleton
         services.AddSingleton<IAccountancyMessageBroker, AccountancyMessageBroker>();
-        services.AddScoped<IAccountancyService, AccountancyService>();
 
-        return services.BuildServiceProvider();
+        return services.BuildServiceProvider(new ServiceProviderOptions
+        {
+            // This will help catch lifetime scope issues during development
+            ValidateScopes = true,
+            ValidateOnBuild = true
+        });
     }
 }
