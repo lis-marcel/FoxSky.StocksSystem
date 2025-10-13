@@ -16,6 +16,7 @@ namespace FoxSky.StocksSystem.Accountancy.Services
         {
             var trades = await dbContext.Trades
                 .Where(e => e.DecisionTime > beginningDate && e.DecisionTime < endDate)
+                .AsNoTracking()
                 .ToListAsync();
 
             return trades;

@@ -41,13 +41,6 @@ namespace FoxSky.StocksSystem.Accountancy.Services
         {
             try
             {
-                Console.WriteLine($"[AccountancyService] Processing traders request with data: " +
-                    $"{requestData.Ticker}, " +
-                    $"{requestData.Price}, " +
-                    $"{requestData.Quantity}, " +
-                    $"{requestData.TradingAction}, " +
-                    $"{requestData.DecisionTime}");
-
                 // Create a new Trade entity
                 var trade = new Trade
                 {
@@ -67,9 +60,10 @@ namespace FoxSky.StocksSystem.Accountancy.Services
                     // Add to database
                     await dbContext.Trades.AddAsync(trade);
                     await dbContext.SaveChangesAsync();
-                    
+
                     Console.WriteLine($"[AccountancyService] Trade saved to database with ID: {trade.Id}");
                 }
+
 
                 return OperationResult.Succeeded($"Trade processed and saved with ID: {trade.Id}", requestData);
             }
