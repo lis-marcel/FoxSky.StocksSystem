@@ -1,10 +1,58 @@
-﻿namespace FoxSky.StocksService.CEO
+﻿using FoxSky.StocksService.CEO.MessageBroker;
+using FoxSky.StocksService.CEO.Services;
+using FoxSky.StocksService.SharedServices;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace FoxSky.StocksService.CEO
 {
-    internal class Program
+    public class Program
     {
-        static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
-            Console.WriteLine("Hello, World!");
+            try
+            {
+                Console.WriteLine("[CEOService] Starting...");
+                EnvReader.Load();
+
+                var serviceProvider = ConfigureServices();
+
+                // Resolve the message broker from the service provider
+                var messageQueueHandler = serviceProvider.GetRequiredService<ICEOMessageBroker>();
+                await messageQueueHandler.InitializeAsync();
+
+                Console.WriteLine("[CEOService] Initialized. Starting to send requests...");
+
+                string datesRange = "2025-01-05 09:30:00,2025-01-12 15:05:00"; // Example date range
+
+                await messageQueueHandler.PublishMessageAsync(datesRange);
+                Console.WriteLine("[CEOService] Request sent. Press any key to exit...");
+                Console.ReadKey();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[CEOService] Fatal error: {ex.Message}");
+                Console.WriteLine(ex.StackTrace);
+                Console.WriteLine("Press any key to exit...");
+                Console.ReadKey();
+            }
+        }
+
+        private static ServiceProvider ConfigureServices()
+        {
+            var services = new ServiceCollection();
+
+            // Register AccountancyService as singleton (but now it creates DbContext instances as needed)
+            services.AddSingleton<ICEOService, CEOService>();
+
+            // Register AccountancyMessageBroker as singleton
+            services.AddSingleton<ICEOMessageBroker, CEOMessageBroker>();
+
+            return services.BuildServiceProvider(new ServiceProviderOptions
+            {
+                // This will help catch lifetime scope issues during development
+                ValidateScopes = true,
+                ValidateOnBuild = true
+            });
         }
     }
 }

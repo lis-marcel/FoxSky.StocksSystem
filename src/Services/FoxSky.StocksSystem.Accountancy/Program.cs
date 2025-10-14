@@ -107,12 +107,12 @@ public class Program
         // Register DbContext as scoped
         services.AddDbContext<AccountancyDbContext>(options =>
             options.UseSqlite(Environment.GetEnvironmentVariable("DB_HOST")));
-
-        // Register AccountancyService as singleton (but now it creates DbContext instances as needed)
-        services.AddSingleton<IAccountancyService, AccountancyService>();
         
         // Register AccountancyMessageBroker as singleton
         services.AddSingleton<IAccountancyMessageBroker, AccountancyMessageBroker>();
+
+        // Register AccountancyService as singleton (but now it creates DbContext instances as needed)
+        services.AddSingleton<IAccountancyService, AccountancyService>();
 
         return services.BuildServiceProvider(new ServiceProviderOptions
         {

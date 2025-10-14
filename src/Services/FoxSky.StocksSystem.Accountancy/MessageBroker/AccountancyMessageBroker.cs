@@ -1,8 +1,8 @@
 ﻿using FoxSky.StocksService.SharedServices;
+using FoxSky.StocksSystem.Accountancy.Services;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
-using FoxSky.StocksSystem.Accountancy.Services;
 
 namespace FoxSky.StocksSystem.Accountancy.MessageBroker
 {
@@ -16,6 +16,8 @@ namespace FoxSky.StocksSystem.Accountancy.MessageBroker
         private readonly string _ceoDataRoutingKey;
         private readonly string _accountancyQueueName;
         private readonly string _tradersExchangeName;
+        private readonly string _ceoExchangeName;
+        private readonly string _accountancyReportRequestRoutingKey;
         private readonly IAccountancyService _accountancyService;
         private AsyncEventingBasicConsumer? _consumer;
         private bool _disposed;
@@ -46,6 +48,12 @@ namespace FoxSky.StocksSystem.Accountancy.MessageBroker
             _tradersExchangeName = Environment.GetEnvironmentVariable("TRADERS_EXCHANGE_NAME")
                 ?? throw new InvalidOperationException("TRADERS_EXCHANGE_NAME environment variable is not set");
 
+            _accountancyReportRequestRoutingKey = Environment.GetEnvironmentVariable("ACCOUNTANCY_REPORT_REQUEST_ROUTING_KEY")
+                ?? throw new InvalidOperationException("ACCOUNTANCY_REPORT_REQUEST_ROUTING_KEY environment variable is not set");
+
+            _ceoExchangeName = Environment.GetEnvironmentVariable("CEO_EXCHANGE_NAME")
+                ?? throw new InvalidOperationException("CEO_EXCHANGE_NAME environment variable is not set");
+
             var factory = new ConnectionFactory { Uri = new Uri(messageUri) };
             _connection = factory.CreateConnectionAsync().GetAwaiter().GetResult();
             _channel = _connection.CreateChannelAsync().GetAwaiter().GetResult();
@@ -73,7 +81,7 @@ namespace FoxSky.StocksSystem.Accountancy.MessageBroker
 
             Console.WriteLine($"[AccountancyService] Declared exchange: {_accountancyExchangeName}");
 
-            // Bind to stocks provider exchange
+            // Bind to StocksProvider exchange
             try
             {
                 await _channel.QueueBindAsync(
@@ -88,13 +96,28 @@ namespace FoxSky.StocksSystem.Accountancy.MessageBroker
                 Console.WriteLine($"[AccountancyService] Error binding to stocks provider exchange: {ex.Message}");
             }
 
-            // Bind to traders exchange
+            // Bind to Traders exchange
             try
             {
                 await _channel.QueueBindAsync(
                     queue: _accountancyQueueName,
                     exchange: _tradersExchangeName,
                     routingKey: _accountancyDataRoutingKey);
+
+                Console.WriteLine($"[AccountancyService] Bound queue to traders exchange with routing key: {_accountancyDataRoutingKey}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[AccountancyService] Error binding to traders exchange: {ex.Message}");
+            }
+
+            // Bind to CEOs exchange
+            try
+            {
+                await _channel.QueueBindAsync(
+                    queue: _accountancyQueueName,
+                    exchange: _ceoExchangeName,
+                    routingKey: _accountancyReportRequestRoutingKey);
 
                 Console.WriteLine($"[AccountancyService] Bound queue to traders exchange with routing key: {_accountancyDataRoutingKey}");
             }
@@ -143,15 +166,32 @@ namespace FoxSky.StocksSystem.Accountancy.MessageBroker
 
                 try
                 {
-                    var result = await _accountancyService.ProcessTradersRequestAsync(message);
+                    if (routingKey == _accountancyReportRequestRoutingKey)
+                    {
+                        var result = await _accountancyService.ProcessReportCreatingRequestAsync(message);
 
-                    if (result.Success)
-                    {
-                        Console.WriteLine($"[AccountancyService] Successfully processed message: {result.Message}");
+                        if (result.Success)
+                        {
+                            Console.WriteLine($"[AccountancyService] Successfully processed message: {result.Message}");
+                        }
+                        else
+                        {
+                            Console.WriteLine($"[AccountancyService] Failed to process message: {result.Message}");
+                        }
                     }
-                    else
+
+                    if (routingKey == _accountancyDataRoutingKey)
                     {
-                        Console.WriteLine($"[AccountancyService] Failed to process message: {result.Message}");
+                        var result = await _accountancyService.ProcessTradersRequestAsync(message);
+
+                        if (result.Success)
+                        {
+                            Console.WriteLine($"[AccountancyService] Successfully processed message: {result.Message}");
+                        }
+                        else
+                        {
+                            Console.WriteLine($"[AccountancyService] Failed to process message: {result.Message}");
+                        }
                     }
                 }
                 catch (Exception ex)

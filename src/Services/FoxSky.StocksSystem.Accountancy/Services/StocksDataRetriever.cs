@@ -2,6 +2,7 @@
 using FoxSky.StocksSystem.Accountancy.Database.Entities;
 using FoxSky.StocksSystem.Accountancy.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,9 +16,9 @@ namespace FoxSky.StocksSystem.Accountancy.Services
         public static async Task<List<Trade>> RetreiveTradesData(AccountancyDbContext dbContext, DateTime beginningDate, DateTime endDate)
         {
             var trades = await dbContext.Trades
-                .Where(e => e.DecisionTime > beginningDate && e.DecisionTime < endDate)
-                .AsNoTracking()
-                .ToListAsync();
+            .Where(e => e.DecisionTime > beginningDate && e.DecisionTime < endDate)
+            .AsNoTracking()
+            .ToListAsync();
 
             return trades;
         }

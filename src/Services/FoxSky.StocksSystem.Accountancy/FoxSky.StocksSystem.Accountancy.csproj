@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Shared\FoxSky.StocksService.SharedServices\FoxSky.StocksService.SharedServices.csproj" />
+    <ProjectReference Include="..\FoxSky.StocksService.CEO\FoxSky.StocksService.CEO.csproj" />
   </ItemGroup>
 
   <ItemGroup>

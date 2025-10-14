@@ -4,9 +4,16 @@ namespace FoxSky.StocksService.CEO.Services
 {
     public class CEOService : ICEOService
     {
+        private readonly IServiceProvider _serviceProvider;
+
+        public CEOService(IServiceProvider serviceProvider)
+        {
+            _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+        }
+
         public Task<OperationResult> RequestReport(DateTime beginningDate, DateTime endDate)
         {
-            throw new NotImplementedException();
+            return Task.FromResult(OperationResult.Succeeded("Report request received.", new { BeginningDate = beginningDate, EndDate = endDate }));
         }
     }
 }
