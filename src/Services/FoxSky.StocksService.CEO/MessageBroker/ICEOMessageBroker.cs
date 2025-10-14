@@ -1,0 +1,13 @@
+﻿using FoxSky.StocksService.SharedServices;
+
+namespace FoxSky.StocksService.CEO.MessageBroker
+{
+    internal interface ICEOMessageBroker
+    {
+        Task InitializeAsync();
+        Task<OperationResult> ReceiveMessageAsync();
+        Task PublishMessageAsync(string message);
+        Task PublishMessageAsync<T>(T obj);
+        Task StopReceivingAsync();
+    }
+}
