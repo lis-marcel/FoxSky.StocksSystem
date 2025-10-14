@@ -2,7 +2,7 @@
 
 namespace FoxSky.StocksService.CEO.MessageBroker
 {
-    internal interface ICEOMessageBroker
+    public interface ICEOMessageBroker
     {
         Task InitializeAsync();
         Task<OperationResult> ReceiveMessageAsync();
