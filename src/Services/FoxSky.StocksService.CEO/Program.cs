@@ -9,10 +9,11 @@ namespace FoxSky.StocksService.CEO
     {
         public static async Task Main(string[] args)
         {
+            EnvReader.Load();
+
             try
             {
                 Console.WriteLine("[CEOService] Starting...");
-                EnvReader.Load();
 
                 var serviceProvider = ConfigureServices();
 
@@ -42,10 +43,10 @@ namespace FoxSky.StocksService.CEO
             var services = new ServiceCollection();
 
             // Register AccountancyService as singleton (but now it creates DbContext instances as needed)
-            services.AddSingleton<ICEOService, CEOService>();
+            services.AddScoped<ICEOService, CEOService>();
 
             // Register AccountancyMessageBroker as singleton
-            services.AddSingleton<ICEOMessageBroker, CEOMessageBroker>();
+            services.AddScoped<ICEOMessageBroker, CEOMessageBroker>();
 
             return services.BuildServiceProvider(new ServiceProviderOptions
             {
