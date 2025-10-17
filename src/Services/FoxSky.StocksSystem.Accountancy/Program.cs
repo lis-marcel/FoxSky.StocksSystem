@@ -32,16 +32,20 @@ public class Program
             }
 
             // Resolve the message broker from the service provider
-            var messageQueueHandler = serviceProvider.GetRequiredService<IAccountancyMessageBroker>();
-            await messageQueueHandler.InitializeAsync();
-
-            Console.WriteLine("[AccountancyService] Initialized. Starting to receive messages...");
-
-            var processingResult = await messageQueueHandler.ReceiveMessageAsync();
-
-            if (!processingResult.Success)
+            using (var scope = serviceProvider.CreateScope())
             {
-                Console.WriteLine($"[AccountancyService] Error: {processingResult.Message}");
+                var messageQueueHandler = scope.ServiceProvider.GetRequiredService<IAccountancyMessageBroker>();
+                await messageQueueHandler.InitializeAsync();
+
+                Console.WriteLine("[AccountancyService] Initialized. Starting to receive messages...");
+
+                // Continue using messageQueueHandler within this scope
+                var processingResult = await messageQueueHandler.ReceiveMessageAsync();
+
+                if (!processingResult.Success)
+                {
+                    Console.WriteLine($"[AccountancyService] Error: {processingResult.Message}");
+                }
             }
         }
         catch (Exception ex)
