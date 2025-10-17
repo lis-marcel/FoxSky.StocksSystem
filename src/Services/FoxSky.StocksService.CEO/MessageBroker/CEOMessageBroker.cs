@@ -24,7 +24,7 @@ namespace FoxSky.StocksService.CEO.MessageBroker
             var messageUri = Environment.GetEnvironmentVariable("MESSAGE_BROKER_URI")
                 ?? throw new InvalidOperationException("MESSAGE_BROKER_URI environment variable is not set");
 
-            _ceoExchangeName = Environment.GetEnvironmentVariable("CEO_QUEUE_NAME")
+            _ceoExchangeName = Environment.GetEnvironmentVariable("CEO_EXCHANGE_NAME")
                 ?? throw new InvalidOperationException("CEO_QUEUE_NAME environment variable is not set");
 
             _accountancyReportRequestRoutingKey = Environment.GetEnvironmentVariable("ACCOUNTANCY_REPORT_REQUEST_ROUTING_KEY")

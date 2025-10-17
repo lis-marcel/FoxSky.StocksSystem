@@ -18,16 +18,20 @@ namespace FoxSky.StocksService.CEO
                 var serviceProvider = ConfigureServices();
 
                 // Resolve the message broker from the service provider
-                var messageQueueHandler = serviceProvider.GetRequiredService<ICEOMessageBroker>();
-                await messageQueueHandler.InitializeAsync();
 
-                Console.WriteLine("[CEOService] Initialized. Starting to send requests...");
+                using (var scope = serviceProvider.CreateScope())
+                {
+                    var messageQueueHandler = scope.ServiceProvider.GetRequiredService<ICEOMessageBroker>();
+                    await messageQueueHandler.InitializeAsync();
 
-                string datesRange = "2025-01-05 09:30:00,2025-01-12 15:05:00"; // Example date range
+                    Console.WriteLine("[CEOService] Initialized. Starting to send requests...");
 
-                await messageQueueHandler.PublishMessageAsync(datesRange);
-                Console.WriteLine("[CEOService] Request sent. Press any key to exit...");
-                Console.ReadKey();
+                    string datesRange = "2025-01-05 09:30:00,2025-01-12 15:05:00"; // Example date range
+
+                    await messageQueueHandler.PublishMessageAsync(datesRange);
+                    Console.WriteLine("[CEOService] Request sent. Press any key to exit...");
+                    Console.ReadKey();
+                }
             }
             catch (Exception ex)
             {
@@ -42,11 +46,11 @@ namespace FoxSky.StocksService.CEO
         {
             var services = new ServiceCollection();
 
-            // Register AccountancyService as singleton (but now it creates DbContext instances as needed)
-            services.AddScoped<ICEOService, CEOService>();
-
             // Register AccountancyMessageBroker as singleton
             services.AddScoped<ICEOMessageBroker, CEOMessageBroker>();
+
+            // Register AccountancyService as singleton (but now it creates DbContext instances as needed)
+            services.AddScoped<ICEOService, CEOService>();
 
             return services.BuildServiceProvider(new ServiceProviderOptions
             {
