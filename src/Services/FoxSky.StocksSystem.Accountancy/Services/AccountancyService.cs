@@ -94,7 +94,7 @@ namespace FoxSky.StocksSystem.Accountancy.Services
                     Issuer = new IssuerDataModel(),
                     BeginningDate = beginningDate,
                     EndDate = endDate,
-                    IssueDate = DateTime.UtcNow,
+                    IssueDate = DateTime.Now,
                     Trades = data
                 };
 

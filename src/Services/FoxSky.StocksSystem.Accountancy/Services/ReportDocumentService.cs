@@ -43,8 +43,12 @@ namespace FoxSky.StocksSystem.Accountancy.Services
                     {
                         column.Item().Text($"Report ID: {reportModel.ReportId}").FontSize(14);
                         column.Item().Text($"Issue Date: {reportModel.IssueDate:yyyy-MM-dd}").FontSize(14);
+                        column.Spacing(5);
+                        column.Item().Text($"Report Period: {reportModel.BeginningDate:yyyy-MM-dd} to {reportModel.EndDate:yyyy-MM-dd}").FontSize(16);
+                        column.Spacing(5);
+                        column.Item().Text($"Commissioned by: {reportModel.Commissioner!.CommissionerName}").FontSize(14);
+                        column.Item().Text($"Issued by: {reportModel.Issuer!.IssuerName}").FontSize(14);
                     });
-                    row.ConstantItem(100).Height(50).Placeholder();
                 });
         }
 
