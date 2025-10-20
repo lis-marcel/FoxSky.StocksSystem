@@ -172,7 +172,7 @@ namespace FoxSky.StocksSystem.Accountancy.MessageBroker
 
                         if (result.Success)
                         {
-                            Console.WriteLine($"[AccountancyService] Successfully processed message: {result.Message}");
+                            Console.WriteLine($"[AccountancyService] Successfully processed with exit message: {result.Message}");
                         }
                         else
                         {
