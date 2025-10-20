@@ -4,6 +4,8 @@ using FoxSky.StocksSystem.Accountancy.Database.Entities;
 using FoxSky.StocksSystem.Accountancy.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
+using QuestPDF.Fluent;
+using QuestPDF.Infrastructure;
 
 namespace FoxSky.StocksSystem.Accountancy.Services
 {
@@ -69,6 +71,8 @@ namespace FoxSky.StocksSystem.Accountancy.Services
 
         public async Task<OperationResult> ProcessReportCreatingRequestAsync(string range)
         {
+            QuestPDF.Settings.License = LicenseType.Community;
+
             try
             {
                 var datesRange = range.Split(",");
@@ -82,6 +86,20 @@ namespace FoxSky.StocksSystem.Accountancy.Services
                 var endDate = DateTime.Parse(datesRange[1]);
 
                 var data = await ReportDocumentDataSource.RetreiveTradesData(_context, beginningDate, endDate);
+
+                var model = new ReportModel
+                {
+                    ReportId = Guid.NewGuid(),
+                    Commissioner = new CommissionerDataModel(),
+                    Issuer = new IssuerDataModel(),
+                    BeginningDate = beginningDate,
+                    EndDate = endDate,
+                    IssueDate = DateTime.UtcNow,
+                    Trades = data
+                };
+
+                var document = new ReportDocumentService(model);
+                document.GeneratePdfAndShow();
 
                 return OperationResult.Succeeded($"Report genereated successfuly");
             }
