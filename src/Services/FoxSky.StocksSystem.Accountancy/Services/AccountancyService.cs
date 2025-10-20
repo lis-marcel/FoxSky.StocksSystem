@@ -81,7 +81,7 @@ namespace FoxSky.StocksSystem.Accountancy.Services
                 var beginningDate = DateTime.Parse(datesRange[0]);
                 var endDate = DateTime.Parse(datesRange[1]);
 
-                var data = await StocksDataRetriever.RetreiveTradesData(_context, beginningDate, endDate);
+                var data = await ReportDocumentDataSource.RetreiveTradesData(_context, beginningDate, endDate);
 
                 return OperationResult.Succeeded($"Report genereated successfuly");
             }

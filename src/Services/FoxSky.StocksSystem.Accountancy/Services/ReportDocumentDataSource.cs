@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace FoxSky.StocksSystem.Accountancy.Services
 {
-    public class StocksDataRetriever
+    public class ReportDocumentDataSource
     {
         public static async Task<List<Trade>> RetreiveTradesData(AccountancyDbContext dbContext, DateTime beginningDate, DateTime endDate)
         {
