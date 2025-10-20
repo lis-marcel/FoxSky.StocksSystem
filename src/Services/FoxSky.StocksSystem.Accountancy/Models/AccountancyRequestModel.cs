@@ -1,6 +1,6 @@
 ﻿namespace FoxSky.StocksSystem.Accountancy.Models
 {
-    public class AccountancyRequest(string ticker, int quantity, decimal price, TradingAction tradingAction, DateTime decistionTime)
+    public class AccountancyRequestModel(string ticker, int quantity, decimal price, TradingAction tradingAction, DateTime decistionTime)
     {
         public string Ticker { get; set; } = ticker;
         public int Quantity { get; set; } = quantity;

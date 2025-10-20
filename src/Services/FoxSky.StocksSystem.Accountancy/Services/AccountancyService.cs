@@ -22,7 +22,7 @@ namespace FoxSky.StocksSystem.Accountancy.Services
         {
             try
             {
-                var requestData = JsonConvert.DeserializeObject<AccountancyRequest>(data);
+                var requestData = JsonConvert.DeserializeObject<AccountancyRequestModel>(data);
 
                 if (requestData == null)
                 {
@@ -37,7 +37,7 @@ namespace FoxSky.StocksSystem.Accountancy.Services
             }
         }
 
-        public async Task<OperationResult> ProcessTradersRequestAsync(AccountancyRequest requestData)
+        public async Task<OperationResult> ProcessTradersRequestAsync(AccountancyRequestModel requestData)
         {
             try
             {
