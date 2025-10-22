@@ -97,17 +97,7 @@ namespace FoxSky.StocksSystem.Accountancy.Services
                 }
 
             });
-
-            //container.PaddingVertical(10).Column(column =>
-            //{
-            //    column.Item().Text($"Report from {reportModel.BeginningDate:yyyy-MM-dd} to {reportModel.EndDate:yyyy-MM-dd}").FontSize(16).Bold();
-            //    foreach (var trade in reportModel.Trades!)
-            //    {
-            //        column.Item().Text($"Trade ID: {trade.Id}, Ticker: {trade.Ticker}, Price: {trade.Price}, Quantity: {trade.Quantity}, Action: {trade.TradingAction}, Decision Time: {trade.DecisionTime:yyyy-MM-dd HH:mm:ss}").FontSize(12);
-            //    }
-            //});
         }
-
         private void ComposeFooter(IContainer container)
         {
             container

@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using QuestPDF.Fluent;
 using QuestPDF.Infrastructure;
+using System.Reflection;
 
 namespace FoxSky.StocksSystem.Accountancy.Services
 {
@@ -72,22 +73,42 @@ namespace FoxSky.StocksSystem.Accountancy.Services
         public async Task<OperationResult> ProcessReportCreatingRequestAsync(string range)
         {
             QuestPDF.Settings.License = LicenseType.Community;
+            DateTime beginningDate, endDate;
+            List<Trade> tradeList = new();
+            ReportModel reportModel;
 
             try
             {
-                var datesRange = range.Split(",");
-
-                if (datesRange.Length != 2)
+                if (string.IsNullOrEmpty(range))
                 {
-                    return OperationResult.Failed("Invalid date range format. Expected format: 'YYYY-MM-DD,YYYY-MM-DD'");
+                    return OperationResult.Failed(message: "At least one date is required for report.");
+                }
+                
+                var datesRange = range.Split(",", StringSplitOptions.RemoveEmptyEntries)
+                    .Select(r => r.Trim()
+                    .ToArray());
+
+                if (!DateTime.TryParse(datesRange.ElementAtOrDefault(0), out beginningDate))
+                {
+                    return OperationResult.Failed(message: "Invalid beginning date.");
                 }
 
-                var beginningDate = DateTime.Parse(datesRange[0]);
-                var endDate = DateTime.Parse(datesRange[1]);
+                if (datesRange.Count() == 1)
+                {
+                    endDate = beginningDate;
+                    tradeList = await ReportDocumentDataSource.RetreiveTradesData(_context, beginningDate);
+                }
+                else
+                {
+                    if (!DateTime.TryParse(datesRange.ElementAtOrDefault(1), out endDate)) 
+                    {
+                        return OperationResult.Failed(message: "Invalid end date.");
+                    }
 
-                var data = await ReportDocumentDataSource.RetreiveTradesData(_context, beginningDate, endDate);
+                    tradeList = await ReportDocumentDataSource.RetreiveTradesData(_context, beginningDate, endDate);
+                }
 
-                var model = new ReportModel
+                reportModel = new ReportModel
                 {
                     ReportId = Guid.NewGuid(),
                     Commissioner = new CommissionerDataModel(),
@@ -95,10 +116,10 @@ namespace FoxSky.StocksSystem.Accountancy.Services
                     BeginningDate = beginningDate,
                     EndDate = endDate,
                     IssueDate = DateTime.Now,
-                    Trades = data
+                    Trades = tradeList
                 };
 
-                var document = new ReportDocumentService(model);
+                var document = new ReportDocumentService(reportModel);
                 document.GeneratePdfAndShow();
 
                 return OperationResult.Succeeded($"Report genereated successfuly");
