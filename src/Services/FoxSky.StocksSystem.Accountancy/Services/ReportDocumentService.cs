@@ -54,6 +54,19 @@ namespace FoxSky.StocksSystem.Accountancy.Services
 
         private void ComposeContent(IContainer container)
         {
+            container.PaddingVertical(40).Column(column =>
+            {
+                column.Spacing(5);
+
+                column.Item().Element(ComposeTable);
+
+                decimal totalTradesSum = reportModel.Trades!.Sum(trade => trade.Price * trade.Quantity);
+                column.Item().PaddingTop(10).AlignRight().Text($"Total Trades Sum: {totalTradesSum:C}").FontSize(14).Bold();
+            });
+        }
+
+        private void ComposeTable(IContainer container)
+        {
             container.Table(table =>
             {
                 table.ColumnsDefinition(columns =>
@@ -66,7 +79,7 @@ namespace FoxSky.StocksSystem.Accountancy.Services
                     columns.RelativeColumn();
                 });
 
-                table.Header(header => 
+                table.Header(header =>
                 {
                     header.Cell().Element(CellStyle).Text("#").FontSize(12).Bold();
                     header.Cell().Element(CellStyle).Text("Ticker").FontSize(12).Bold();
@@ -95,9 +108,9 @@ namespace FoxSky.StocksSystem.Accountancy.Services
                         return container.PaddingVertical(5).BorderBottom(1).BorderColor(Colors.Grey.Lighten2);
                     }
                 }
-
             });
         }
+
         private void ComposeFooter(IContainer container)
         {
             container
