@@ -60,8 +60,25 @@ namespace FoxSky.StocksSystem.Accountancy.Services
 
                 column.Item().Element(ComposeTable);
 
-                decimal totalTradesSum = reportModel.Trades!.Sum(trade => trade.Price * trade.Quantity);
-                column.Item().PaddingTop(10).AlignRight().Text($"Total Trades Sum: {totalTradesSum:C}").FontSize(14).Bold();
+                // Calculate buys and sells separately
+                decimal totalBuys = reportModel.Trades!
+                    .Where(t => t.TradingAction == TradingAction.Buy)
+                    .Sum(t => t.Price * t.Quantity);
+
+                decimal totalSells = reportModel.Trades!
+                    .Where(t => t.TradingAction == TradingAction.Sell)
+                    .Sum(t => t.Price * t.Quantity);
+
+                decimal netCashFlow = totalSells - totalBuys; // Positive = profit, Negative = loss
+
+                column.Item().PaddingTop(10).AlignRight()
+                    .Text($"Total Buys: {totalBuys:C}").FontSize(12);
+                column.Item().AlignRight()
+                    .Text($"Total Sells: {totalSells:C}").FontSize(12);
+                column.Item().AlignRight()
+                    .Text($"Net Cash Flow: {netCashFlow:C}")
+                    .FontSize(14).Bold()
+                    .FontColor(netCashFlow >= 0 ? Colors.Green.Darken2 : Colors.Red.Darken2);
             });
         }
 
