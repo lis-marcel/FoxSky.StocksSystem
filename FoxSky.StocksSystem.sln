@@ -21,6 +21,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FoxSky.StocksSystem.Traders
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FoxSky.StocksService.CEO", "src\Services\FoxSky.StocksService.CEO\FoxSky.StocksService.CEO.csproj", "{31176669-546A-4C3A-05BD-D71DE6DC8C14}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FoxSky.StocksSystem.DMS", "src\Services\FoxSky.StocksSystem.DMS\FoxSky.StocksSystem.DMS.csproj", "{B4116D2B-8FB9-4A4B-84BA-5FA50C91641F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -103,6 +105,18 @@ Global
 		{31176669-546A-4C3A-05BD-D71DE6DC8C14}.Release|x64.Build.0 = Release|Any CPU
 		{31176669-546A-4C3A-05BD-D71DE6DC8C14}.Release|x86.ActiveCfg = Release|Any CPU
 		{31176669-546A-4C3A-05BD-D71DE6DC8C14}.Release|x86.Build.0 = Release|Any CPU
+		{B4116D2B-8FB9-4A4B-84BA-5FA50C91641F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B4116D2B-8FB9-4A4B-84BA-5FA50C91641F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B4116D2B-8FB9-4A4B-84BA-5FA50C91641F}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{B4116D2B-8FB9-4A4B-84BA-5FA50C91641F}.Debug|x64.Build.0 = Debug|Any CPU
+		{B4116D2B-8FB9-4A4B-84BA-5FA50C91641F}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{B4116D2B-8FB9-4A4B-84BA-5FA50C91641F}.Debug|x86.Build.0 = Debug|Any CPU
+		{B4116D2B-8FB9-4A4B-84BA-5FA50C91641F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B4116D2B-8FB9-4A4B-84BA-5FA50C91641F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B4116D2B-8FB9-4A4B-84BA-5FA50C91641F}.Release|x64.ActiveCfg = Release|Any CPU
+		{B4116D2B-8FB9-4A4B-84BA-5FA50C91641F}.Release|x64.Build.0 = Release|Any CPU
+		{B4116D2B-8FB9-4A4B-84BA-5FA50C91641F}.Release|x86.ActiveCfg = Release|Any CPU
+		{B4116D2B-8FB9-4A4B-84BA-5FA50C91641F}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -116,6 +130,7 @@ Global
 		{0DCABC06-1C14-4137-82C5-080F66F0CC3D} = {984BB9B3-3FA3-BE33-9484-CAC21695A33C}
 		{5534F5F2-9792-A568-43D6-47CBCA481D54} = {984BB9B3-3FA3-BE33-9484-CAC21695A33C}
 		{31176669-546A-4C3A-05BD-D71DE6DC8C14} = {984BB9B3-3FA3-BE33-9484-CAC21695A33C}
+		{B4116D2B-8FB9-4A4B-84BA-5FA50C91641F} = {984BB9B3-3FA3-BE33-9484-CAC21695A33C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {8E44A82E-1C1E-4EAA-B7A4-E299AD26C4D1}
