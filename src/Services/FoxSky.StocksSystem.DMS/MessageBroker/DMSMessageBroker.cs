@@ -150,7 +150,7 @@ namespace FoxSky.StocksSystem.DMS.MessageBroker
                 }
             }
         }
-
+            
         private void ThrowIfDisposed()
         {
             if (_disposed)
