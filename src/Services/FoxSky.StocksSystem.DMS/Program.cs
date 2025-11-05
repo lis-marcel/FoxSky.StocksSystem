@@ -1,10 +1,13 @@
-﻿namespace FoxSky.StocksSystem.DMS
+﻿using FoxSky.StocksService.SharedServices;
+
+namespace FoxSky.StocksSystem.DMS
 {
     internal class Program
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello, DMS World!");
+            Console.WriteLine("[DMS] Starting...");
+            EnvReader.Load();
         }
     }
 }
