@@ -191,7 +191,7 @@ namespace FoxSky.StocksSystem.Accountancy.MessageBroker
                         {
                             Console.WriteLine($"[AccountancyService] Successfully processed with exit message: {result.Message}");
 
-                            var dataByets = result.Data!.ToString();
+                            var dataByets = (byte[])result.Data!;
 
                             await PublishMessageAsync(_accountancyExchangeName, _dmsReportRoutingKey , dataByets!);
                         }

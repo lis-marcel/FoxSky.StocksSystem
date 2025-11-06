@@ -15,6 +15,7 @@ namespace FoxSky.StocksSystem.DMS.MessageBroker
         private readonly string _dmsExchangeName;
         private readonly string _dmsQueueName;
         private readonly string _accountancyReportDocumentRoutingKey;
+        private readonly string _dmsReportRoutingKey;
         private AsyncEventingBasicConsumer? _consumer;
         private bool _disposed;
         private CancellationTokenSource? _cancellationTokenSource;
@@ -36,6 +37,9 @@ namespace FoxSky.StocksSystem.DMS.MessageBroker
             _dmsQueueName = Environment.GetEnvironmentVariable("DMS_QUEUE_NAME") 
                 ?? throw new InvalidOperationException("DMS_QUEUE_NAME value not set");
 
+            _dmsReportRoutingKey = Environment.GetEnvironmentVariable("DMS_REPORT_ROUTING_KEY")
+                ?? throw new InvalidOperationException("DMS_REPORT_ROUTING_KEY value not set");
+
             var factory = new ConnectionFactory { Uri = new Uri(messageUri) };
             _connection = factory.CreateConnectionAsync().GetAwaiter().GetResult();
             _channel = _connection.CreateChannelAsync().GetAwaiter().GetResult();
@@ -55,7 +59,7 @@ namespace FoxSky.StocksSystem.DMS.MessageBroker
             Console.WriteLine($"[DMS] Declared queue: {_dmsQueueName}");
 
             await _channel.ExchangeDeclareAsync(
-                exchange: _accountancyExchangeName,
+                exchange: _dmsExchangeName,
                 type: ExchangeType.Topic,
                 durable: false,
                 autoDelete: false,
@@ -68,9 +72,9 @@ namespace FoxSky.StocksSystem.DMS.MessageBroker
                 await _channel.QueueBindAsync(
                     queue: _dmsQueueName,
                     exchange: _accountancyExchangeName,
-                    routingKey: _accountancyReportDocumentRoutingKey);
+                    routingKey: _dmsReportRoutingKey);
 
-                Console.WriteLine($"[DMS] Bound queue to traders exchange with routing key: {_accountancyReportDocumentRoutingKey}");
+                Console.WriteLine($"[DMS] Bound queue to traders exchange with routing key: {_dmsReportRoutingKey}");
             }
             catch (Exception ex)
             {
@@ -95,7 +99,7 @@ namespace FoxSky.StocksSystem.DMS.MessageBroker
 
                 try
                 {
-                    if (routingKey == _accountancyReportDocumentRoutingKey)
+                    if (routingKey == _dmsReportRoutingKey)
                     {
                         Console.WriteLine($"[DMS] received data: {message}");
                     }
