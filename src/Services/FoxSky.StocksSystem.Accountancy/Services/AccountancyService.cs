@@ -120,9 +120,9 @@ namespace FoxSky.StocksSystem.Accountancy.Services
                 };
 
                 var document = new ReportDocumentService(reportModel);
-                document.GeneratePdfAndShow();
+                var documentBytes = document.GeneratePdf();
 
-                return OperationResult.Succeeded($"Report genereated successfuly");
+                return OperationResult.Succeeded($"Report genereated successfuly", data: documentBytes);
             }
             catch (Exception ex)
             {

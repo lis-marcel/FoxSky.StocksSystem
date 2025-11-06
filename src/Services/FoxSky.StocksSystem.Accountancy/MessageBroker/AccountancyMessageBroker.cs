@@ -1,5 +1,6 @@
 ﻿using FoxSky.StocksService.SharedServices;
 using FoxSky.StocksSystem.Accountancy.Services;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
@@ -18,6 +19,7 @@ namespace FoxSky.StocksSystem.Accountancy.MessageBroker
         private readonly string _tradersExchangeName;
         private readonly string _ceoExchangeName;
         private readonly string _accountancyReportRequestRoutingKey;
+        private readonly string _dmsReportRoutingKey;
         private readonly IAccountancyService _accountancyService;
         private AsyncEventingBasicConsumer? _consumer;
         private bool _disposed;
@@ -53,6 +55,9 @@ namespace FoxSky.StocksSystem.Accountancy.MessageBroker
 
             _ceoExchangeName = Environment.GetEnvironmentVariable("CEO_EXCHANGE_NAME")
                 ?? throw new InvalidOperationException("CEO_EXCHANGE_NAME environment variable is not set");
+
+            _dmsReportRoutingKey = Environment.GetEnvironmentVariable("DMS_REPORT_ROUTING_KEY")
+                ?? throw new InvalidOperationException("DMS_REPORT_ROUTING_KEY environment variable is not set");
 
             var factory = new ConnectionFactory { Uri = new Uri(messageUri) };
             _connection = factory.CreateConnectionAsync().GetAwaiter().GetResult();
@@ -129,15 +134,27 @@ namespace FoxSky.StocksSystem.Accountancy.MessageBroker
             Console.WriteLine("[AccountancyService] Message queue initialization completed");
         }
 
-        public async Task PublishMessageAsync(string message)
+        public async Task PublishMessageAsync(string exchange, string receivcer, string message)
         {
             ThrowIfDisposed();
             var body = Encoding.UTF8.GetBytes(message);
 
             await _channel.BasicPublishAsync(
-                exchange: _accountancyExchangeName,
-                routingKey: _ceoDataRoutingKey,
+                exchange: exchange,
+                routingKey: receivcer,
                 body: body);
+
+            Console.WriteLine($"[AccountancyService] Published message");
+        }
+
+        public async Task PublishMessageAsync(string exchange, string receivcer, byte[] message)
+        {
+            ThrowIfDisposed();
+
+            await _channel.BasicPublishAsync(
+                exchange: exchange,
+                routingKey: receivcer,
+                body: message);
 
             Console.WriteLine($"[AccountancyService] Published message");
         }
@@ -173,6 +190,10 @@ namespace FoxSky.StocksSystem.Accountancy.MessageBroker
                         if (result.Success)
                         {
                             Console.WriteLine($"[AccountancyService] Successfully processed with exit message: {result.Message}");
+
+                            var dataByets = result.Data!.ToString();
+
+                            await PublishMessageAsync(_accountancyExchangeName, _dmsReportRoutingKey , dataByets!);
                         }
                         else
                         {

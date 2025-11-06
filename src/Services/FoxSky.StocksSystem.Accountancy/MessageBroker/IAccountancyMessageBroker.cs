@@ -1,4 +1,5 @@
 ﻿using FoxSky.StocksService.SharedServices;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace FoxSky.StocksSystem.Accountancy.MessageBroker
 {
@@ -6,7 +7,8 @@ namespace FoxSky.StocksSystem.Accountancy.MessageBroker
     {
         Task InitializeAsync();
         Task<OperationResult> ReceiveMessageAsync();
-        Task PublishMessageAsync(string message);
+        Task PublishMessageAsync(string exchange, string receivcer, string message);
+        Task PublishMessageAsync(string exchange, string receivcer, byte[] message);
         Task PublishMessageAsync<T>(T obj);
         Task StopReceivingAsync();
     }
