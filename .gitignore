@@ -430,3 +430,4 @@ FodyWeavers.xsd
 # Sqlite database files
 *.sqlite
 *.db
+*.db*
