@@ -8,7 +8,7 @@ namespace FoxSky.StocksSystem.Accountancy.Models
 {
     public class IssuerDataModel
     {
-        public Guid IssuerId { get; set; }
+        public int IssuerId { get; set; } = 1;
         public string IssuerName { get; set; } = "Nikola Tesla";
         public string IssuerEmail { get; set; } = "nikola.tesla@accountancy.mail.com";
         public string IssuerPhone { get; set; } = "+1234567890";

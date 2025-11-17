@@ -8,7 +8,7 @@ namespace FoxSky.StocksSystem.Accountancy.Models
 {
     public class CommissionerDataModel
     {
-        public Guid CommissionerId { get; set; }
+        public int CommissionerId { get; set; } = 1;
         public string CommissionerName { get; set; } = "Max Verstappen";
         public string CommissionerEmail { get; set; } = "max.verstappen@ceo.mail.com";
         public string CommissionerPhone { get; set; } = "+1-202-555-0143";

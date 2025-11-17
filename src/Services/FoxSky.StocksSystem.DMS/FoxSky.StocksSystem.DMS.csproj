@@ -16,4 +16,12 @@
     <ProjectReference Include="..\..\Shared\FoxSky.StocksService.SharedServices\FoxSky.StocksService.SharedServices.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Service\" />
+    <Folder Include="Database\" />
+    <Folder Include="Database\Context\" />
+    <Folder Include="Database\Entities\" />
+    <Folder Include="Database\Utilities\" />
+  </ItemGroup>
+
 </Project>
