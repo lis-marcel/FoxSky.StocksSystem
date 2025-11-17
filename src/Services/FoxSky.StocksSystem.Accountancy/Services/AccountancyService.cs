@@ -1,4 +1,5 @@
 ﻿using FoxSky.StocksService.SharedServices;
+using FoxSky.StocksService.SharedServices.Models;
 using FoxSky.StocksSystem.Accountancy.Database.Context;
 using FoxSky.StocksSystem.Accountancy.Database.Entities;
 using FoxSky.StocksSystem.Accountancy.Models;
@@ -122,7 +123,17 @@ namespace FoxSky.StocksSystem.Accountancy.Services
                 var document = new ReportDocumentService(reportModel);
                 var documentBytes = document.GeneratePdf();
 
-                return OperationResult.Succeeded($"Report genereated successfuly", data: documentBytes);
+                var dmsReport = new DmsReportModel
+                {
+                    ReportId = reportModel.ReportId,
+                    Document = documentBytes,
+                    IssuerId = reportModel.Issuer.IssuerId,
+                    CommissionerId = reportModel.Commissioner.CommissionerId,
+                    CommissionerEmail = reportModel.Commissioner.CommissionerEmail,
+                    IssueDate = reportModel.IssueDate
+                };
+
+                return OperationResult.Succeeded($"Report genereated successfuly", data: dmsReport);
             }
             catch (Exception ex)
             {

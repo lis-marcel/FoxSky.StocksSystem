@@ -1,8 +1,8 @@
 ﻿using FoxSky.StocksService.SharedServices;
+using FoxSky.StocksService.SharedServices.Models;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
-using System.Text;
-using System.Threading;
+using System.Text.Json;
 
 namespace FoxSky.StocksSystem.DMS.MessageBroker
 {
@@ -92,7 +92,6 @@ namespace FoxSky.StocksSystem.DMS.MessageBroker
             _consumer.ReceivedAsync += async (model, ea) =>
             {
                 var body = ea.Body.ToArray();
-                var message = Encoding.UTF8.GetString(body);
                 var routingKey = ea.RoutingKey;
 
                 Console.WriteLine($"[DMS] Received message with routing key: {routingKey}");
@@ -101,7 +100,16 @@ namespace FoxSky.StocksSystem.DMS.MessageBroker
                 {
                     if (routingKey == _dmsReportRoutingKey)
                     {
-                        Console.WriteLine($"[DMS] received data: {message}");
+                        Console.WriteLine($"[DMS] received data.");
+                        var reportModel = JsonSerializer.Deserialize<DmsReportModel>(body);
+
+                        // To-Do: Implement logic to save to MongoDB
+                        // await _mongoDbService.SaveDocumentAsync(reportModel);
+                        Console.WriteLine($"[DMS] Stored report {reportModel!.ReportId} in the database.");
+
+                        // To-Do: Implement notification logic
+                        // await _notificationService.NotifyCommissionerAsync(reportModel.CommisionerId, reportModel.ReportId);
+                        Console.WriteLine($"[DMS] Sent notification to {reportModel.CommissionerEmail}.");
                     }
                     else
                     {

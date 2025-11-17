@@ -1,9 +1,11 @@
 ﻿using FoxSky.StocksService.SharedServices;
+using FoxSky.StocksService.SharedServices.Models;
 using FoxSky.StocksSystem.Accountancy.Services;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
+using System.Text.Json;
 
 namespace FoxSky.StocksSystem.Accountancy.MessageBroker
 {
@@ -191,9 +193,10 @@ namespace FoxSky.StocksSystem.Accountancy.MessageBroker
                         {
                             Console.WriteLine($"[AccountancyService] Successfully processed with exit message: {reportData.Message}");
 
-                            var dataByets = (byte[])reportData.Data!;
+                            var dmsReport = (DmsReportModel)reportData.Data!;
+                            var serializedReportData = Newtonsoft.Json.JsonConvert.SerializeObject(dmsReport);
 
-                            await PublishMessageAsync(_accountancyExchangeName, _dmsReportRoutingKey , dataByets!);
+                            await PublishMessageAsync(_accountancyExchangeName, _dmsReportRoutingKey , serializedReportData!);
                         }
                         else
                         {
