@@ -1,6 +1,6 @@
 using System;
 
-namespace FoxSky.StocksSystem.Accountancy.Models
+namespace FoxSky.StocksService.SharedServices.Models
 {
     public class DmsReportModel
     {
