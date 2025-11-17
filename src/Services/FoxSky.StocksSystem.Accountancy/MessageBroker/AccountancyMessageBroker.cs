@@ -185,19 +185,19 @@ namespace FoxSky.StocksSystem.Accountancy.MessageBroker
                 {
                     if (routingKey == _accountancyReportRequestRoutingKey)
                     {
-                        var result = await _accountancyService.ProcessReportCreatingRequestAsync(message);
+                        var reportData = await _accountancyService.ProcessReportCreatingRequestAsync(message);
 
-                        if (result.Success)
+                        if (reportData.Success)
                         {
-                            Console.WriteLine($"[AccountancyService] Successfully processed with exit message: {result.Message}");
+                            Console.WriteLine($"[AccountancyService] Successfully processed with exit message: {reportData.Message}");
 
-                            var dataByets = (byte[])result.Data!;
+                            var dataByets = (byte[])reportData.Data!;
 
                             await PublishMessageAsync(_accountancyExchangeName, _dmsReportRoutingKey , dataByets!);
                         }
                         else
                         {
-                            Console.WriteLine($"[AccountancyService] Failed to process message: {result.Message}");
+                            Console.WriteLine($"[AccountancyService] Failed to process message: {reportData.Message}");
                         }
                     }
 

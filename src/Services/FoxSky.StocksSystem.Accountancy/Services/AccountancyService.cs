@@ -73,7 +73,7 @@ namespace FoxSky.StocksSystem.Accountancy.Services
         public async Task<OperationResult> ProcessReportCreatingRequestAsync(string range)
         {
             QuestPDF.Settings.License = LicenseType.Community;
-            DateTime beginningDate, endDate;
+            DateTime endDate;
             List<Trade> tradeList = new();
             ReportModel reportModel;
 
@@ -88,7 +88,7 @@ namespace FoxSky.StocksSystem.Accountancy.Services
                     .Select(r => r.Trim()
                     .ToArray());
 
-                if (!DateTime.TryParse(datesRange.ElementAtOrDefault(0), out beginningDate))
+                if (!DateTime.TryParse(datesRange.ElementAtOrDefault(0), out DateTime beginningDate))
                 {
                     return OperationResult.Failed(message: "Invalid beginning date.");
                 }
