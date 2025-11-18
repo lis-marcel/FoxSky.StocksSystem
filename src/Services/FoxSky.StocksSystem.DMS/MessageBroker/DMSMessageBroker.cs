@@ -1,4 +1,5 @@
-﻿using FoxSky.StocksSystem.SharedServices;
+﻿using FoxSky.StocksSystem.DMS.Services;
+using FoxSky.StocksSystem.SharedServices;
 using FoxSky.StocksSystem.SharedServices.Models;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -19,9 +20,12 @@ namespace FoxSky.StocksSystem.DMS.MessageBroker
         private AsyncEventingBasicConsumer? _consumer;
         private bool _disposed;
         private CancellationTokenSource? _cancellationTokenSource;
+        private readonly IDMSService _dmsService;
 
-        public DMSMessageBroker()
+        public DMSMessageBroker(IDMSService dmsService)
         {
+            _dmsService = dmsService ?? throw new ArgumentNullException(nameof(dmsService)); ;
+
             messageUri = Environment.GetEnvironmentVariable("MESSAGE_BROKER_URI") 
                 ?? throw new InvalidOperationException("MESSAGE_BROKER_URI value not set");
 
@@ -101,15 +105,7 @@ namespace FoxSky.StocksSystem.DMS.MessageBroker
                     if (routingKey == _dmsReportRoutingKey)
                     {
                         Console.WriteLine($"[DMS] received data.");
-                        var reportModel = JsonSerializer.Deserialize<DmsReportModel>(body);
-
-                        // To-Do: Implement logic to save to MongoDB
-                        // await _mongoDbService.SaveDocumentAsync(reportModel);
-                        Console.WriteLine($"[DMS] Stored report {reportModel!.ReportId} in the database.");
-
-                        // To-Do: Implement notification logic
-                        // await _notificationService.NotifyCommissionerAsync(reportModel.CommisionerId, reportModel.ReportId);
-                        Console.WriteLine($"[DMS] Sent notification to {reportModel.CommissionerEmail}.");
+                        var messageData = _dmsService.ProcessSaveDocumentRequest(body);
                     }
                     else
                     {

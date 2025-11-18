@@ -1,4 +1,4 @@
-﻿using FoxSky.StocksService.SharedServices;
+﻿using FoxSky.StocksSystem.SharedServices;
 using FoxSky.StocksSystem.Traders.Models;
 
 namespace FoxSky.StocksSystem.Traders.Services

@@ -1,4 +1,4 @@
-﻿using FoxSky.StocksService.SharedServices;
+﻿using FoxSky.StocksSystem.SharedServices;
 using FoxSky.StocksSystem.Accountancy.Models;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;

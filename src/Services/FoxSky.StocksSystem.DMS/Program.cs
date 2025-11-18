@@ -1,12 +1,13 @@
 ﻿using FoxSky.StocksSystem.SharedServices;
 using FoxSky.StocksSystem.DMS.MessageBroker;
 using Microsoft.Extensions.DependencyInjection;
+using FoxSky.StocksSystem.DMS.Services;
 
 namespace FoxSky.StocksSystem.DMS
 {
-    internal class Program
+    public class Program
     {
-        static async Task Main(string[] args)
+        public static async Task Main(string[] args)
         {
             try
             {
@@ -45,6 +46,7 @@ namespace FoxSky.StocksSystem.DMS
             var services = new ServiceCollection();
 
             // Register AccountancyMessageBroker as singleton
+            services.AddScoped<IDMSService, DMSService>();
             services.AddScoped<IDMSMessageBroker, DMSMessageBroker>();
 
             return services.BuildServiceProvider(new ServiceProviderOptions

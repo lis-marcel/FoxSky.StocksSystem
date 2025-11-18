@@ -1,4 +1,4 @@
-﻿using FoxSky.StocksService.SharedServices;
+﻿using FoxSky.StocksSystem.SharedServices;
 using FoxSky.StocksSystem.Traders.Services;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;

@@ -1,6 +1,6 @@
 ﻿using FoxSky.StocksService.CEO.MessageBroker;
 using FoxSky.StocksService.CEO.Services;
-using FoxSky.StocksService.SharedServices;
+using FoxSky.StocksSystem.SharedServices;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FoxSky.StocksService.CEO

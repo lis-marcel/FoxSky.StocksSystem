@@ -1,4 +1,4 @@
-﻿using FoxSky.StocksService.SharedServices;
+﻿using FoxSky.StocksSystem.SharedServices;
 using FoxSky.StocksSystem.Accountancy.Database.Context;
 using FoxSky.StocksSystem.Accountancy.MessageBroker;
 using FoxSky.StocksSystem.Accountancy.Services;

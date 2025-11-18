@@ -1,4 +1,4 @@
-﻿using FoxSky.StocksService.SharedServices;
+﻿using FoxSky.StocksSystem.SharedServices;
 using FoxSky.StocksService.Traders.MessageQueueHandler;
 using System.Threading.Tasks;
 

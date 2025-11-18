@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
-using FoxSky.StocksService.SharedServices;
+using FoxSky.StocksSystem.SharedServices;
 
 namespace FoxSky.StocksSystem.Accountancy.Database.Context
 {
