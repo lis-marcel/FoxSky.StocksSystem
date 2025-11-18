@@ -1,11 +1,9 @@
-﻿using FoxSky.StocksService.SharedServices;
-using FoxSky.StocksService.SharedServices.Models;
-using FoxSky.StocksSystem.Accountancy.Services;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+﻿using FoxSky.StocksSystem.Accountancy.Services;
+using FoxSky.StocksSystem.SharedServices;
+using FoxSky.StocksSystem.SharedServices.Models;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
-using System.Text.Json;
 
 namespace FoxSky.StocksSystem.Accountancy.MessageBroker
 {

@@ -1,5 +1,4 @@
-﻿using FoxSky.StocksService.SharedServices;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+﻿using FoxSky.StocksSystem.SharedServices;
 
 namespace FoxSky.StocksSystem.Accountancy.MessageBroker
 {

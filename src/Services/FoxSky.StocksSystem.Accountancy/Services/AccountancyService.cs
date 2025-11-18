@@ -1,13 +1,11 @@
-﻿using FoxSky.StocksService.SharedServices;
-using FoxSky.StocksService.SharedServices.Models;
-using FoxSky.StocksSystem.Accountancy.Database.Context;
+﻿using FoxSky.StocksSystem.Accountancy.Database.Context;
 using FoxSky.StocksSystem.Accountancy.Database.Entities;
 using FoxSky.StocksSystem.Accountancy.Models;
-using Microsoft.Extensions.DependencyInjection;
+using FoxSky.StocksSystem.SharedServices;
+using FoxSky.StocksSystem.SharedServices.Models;
 using Newtonsoft.Json;
 using QuestPDF.Fluent;
 using QuestPDF.Infrastructure;
-using System.Reflection;
 
 namespace FoxSky.StocksSystem.Accountancy.Services
 {
