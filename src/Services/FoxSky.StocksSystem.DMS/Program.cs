@@ -1,4 +1,4 @@
-﻿using FoxSky.StocksService.SharedServices;
+﻿using FoxSky.StocksSystem.SharedServices;
 using FoxSky.StocksSystem.DMS.MessageBroker;
 using Microsoft.Extensions.DependencyInjection;
 
