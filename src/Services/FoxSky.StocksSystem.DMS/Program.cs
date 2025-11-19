@@ -2,6 +2,7 @@
 using FoxSky.StocksSystem.DMS.MessageBroker;
 using Microsoft.Extensions.DependencyInjection;
 using FoxSky.StocksSystem.DMS.Services;
+using MongoDB;
 
 namespace FoxSky.StocksSystem.DMS
 {
@@ -12,7 +13,8 @@ namespace FoxSky.StocksSystem.DMS
             try
             {
                 Console.WriteLine("[DMS] Starting...");
-                EnvReader.Load();
+                ConfigVariablesReader.LoadEnv();
+                ConfigVariablesReader.LoadAppsettingsEnv();
 
                 var serviceProvider = ConfigureServices();
 
@@ -23,7 +25,6 @@ namespace FoxSky.StocksSystem.DMS
 
                     Console.WriteLine("[DMS] Initialized. Starting to receive messages...");
 
-                    // Continue using messageQueueHandler within this scope
                     var processingResult = await messageQueueHandler.ReceiveMessageAsync();
 
                     if (!processingResult.Success)
@@ -45,7 +46,6 @@ namespace FoxSky.StocksSystem.DMS
         {
             var services = new ServiceCollection();
 
-            // Register AccountancyMessageBroker as singleton
             services.AddScoped<IDMSService, DMSService>();
             services.AddScoped<IDMSMessageBroker, DMSMessageBroker>();
 

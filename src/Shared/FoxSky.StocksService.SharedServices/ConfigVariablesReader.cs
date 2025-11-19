@@ -1,4 +1,6 @@
-﻿namespace FoxSky.StocksSystem.SharedServices;
+﻿using System.Text.Json;
+
+namespace FoxSky.StocksSystem.SharedServices;
 
 public class ConfigVariablesReader
 {
@@ -33,20 +35,28 @@ public class ConfigVariablesReader
         if (!File.Exists(filePath) || filePath == null)
             throw new FileNotFoundException($"The file '{filePath}' does not exist.");
 
-        foreach (var line in File.ReadAllLines(filePath))
+        var jsonString = File.ReadAllText(filePath);
+        using var doc = JsonDocument.Parse(jsonString);
+        var root = doc.RootElement;
+
+        ProcessJsonElement(root);
+    }
+
+    private static void ProcessJsonElement(JsonElement element, string? prefix = null)
+    {
+        foreach (var property in element.EnumerateObject())
         {
-            if (string.IsNullOrWhiteSpace(line) || line.StartsWith("#"))
-                continue; // Skip empty lines and comments
+            var currentKey = string.IsNullOrEmpty(prefix) ? property.Name : $"{prefix}:{property.Name}";
 
-            var parts = line.Split('=', 2);
-
-            if (parts.Length != 2)
-                continue; // Skip lines that are not key-value pairs
-
-            var key = parts[0].Trim();
-            var value = parts[1].Trim();
-
-            AppContext.SetData(key, value);
+            if (property.Value.ValueKind == JsonValueKind.Object)
+            {
+                ProcessJsonElement(property.Value, currentKey);
+            }
+            else
+            {
+                var value = property.Value.ToString();
+                AppContext.SetData(currentKey, value);
+            }
         }
     }
 
