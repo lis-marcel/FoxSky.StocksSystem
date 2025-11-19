@@ -11,7 +11,7 @@ public class Program
         try
         {
             Console.WriteLine("[Traders service] Starting...");
-            EnvReader.Load();
+            ConfigVariablesReader.LoadEnv();
 
             // Use the static CreateAsync method
             var messageQueueHandler = await MessageQueueHandler.TradersMessageBroker.CreateAsync();

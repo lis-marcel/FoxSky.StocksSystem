@@ -9,7 +9,7 @@ class Program
 
     public static async Task Main(string[] args)
     {
-        EnvReader.Load();
+        ConfigVariablesReader.LoadEnv();
 
         var apiKey = Environment.GetEnvironmentVariable("STOCKS_API_KEY");
         var apiUrl = Environment.GetEnvironmentVariable("STOCKS_API_URL");

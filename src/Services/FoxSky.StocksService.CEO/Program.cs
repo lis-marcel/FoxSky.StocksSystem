@@ -9,7 +9,7 @@ namespace FoxSky.StocksService.CEO
     {
         public static async Task Main(string[] args)
         {
-            EnvReader.Load();
+            ConfigVariablesReader.LoadEnv();
 
             try
             {

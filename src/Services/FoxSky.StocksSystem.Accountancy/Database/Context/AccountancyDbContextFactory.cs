@@ -9,7 +9,7 @@ namespace FoxSky.StocksSystem.Accountancy.Database.Context
         public AccountancyDbContext CreateDbContext(string[] args)
         {
             // Load environment variables
-            EnvReader.Load();
+            ConfigVariablesReader.LoadEnv();
 
             var optionsBuilder = new DbContextOptionsBuilder<AccountancyDbContext>();
             var connectionString = Environment.GetEnvironmentVariable("DB_HOST");
