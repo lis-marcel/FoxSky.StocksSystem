@@ -16,7 +16,7 @@ public class Program
         try
         {
             Console.WriteLine("[AccountancyService] Starting...");
-            EnvVariablesReader.LoadEnv();
+            ConfigVariablesReader.LoadEnv();
 
             // Ensure the database directory exists
             EnsureDatabaseDirectoryExists();
