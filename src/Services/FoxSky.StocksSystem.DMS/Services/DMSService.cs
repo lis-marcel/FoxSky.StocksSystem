@@ -7,6 +7,7 @@ using Newtonsoft.Json;
 using System.Text;
 using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Bson;
+using System.Diagnostics;
 
 namespace FoxSky.StocksSystem.DMS.Services
 {
@@ -24,11 +25,41 @@ namespace FoxSky.StocksSystem.DMS.Services
         {
             try
             {
-                return await SaveDocumentAsync(data);
+                var processingResult = await SaveDocumentAsync(data);
+
+                if (processingResult.Success)
+                {
+                    // Example of how you might visualize the document after saving.
+                    // You would need the documentId from the result.
+                    if (processingResult.Data is ObjectId documentId)
+                    {
+                        var documentBytes = await GetDocumentAsync(documentId);
+                        if (documentBytes != null)
+                        {
+                            VisualizeDocument(documentBytes);
+                        }
+                    }
+                    return OperationResult.Succeeded(message: processingResult.Message);
+                }
+
+                return processingResult;
             }
             catch (Exception ex)
             {
                 return OperationResult.Failed(message: $"Error processing document request: {ex.Message}");
+            }
+        }
+
+        public async Task<byte[]?> GetDocumentAsync(ObjectId documentId)
+        {
+            try
+            {
+                var gridFS = new GridFSBucket(_dbContext.Database);
+                return await gridFS.DownloadAsBytesAsync(documentId);
+            }
+            catch (GridFSFileNotFoundException)
+            {
+                return null;
             }
         }
 
@@ -50,7 +81,7 @@ namespace FoxSky.StocksSystem.DMS.Services
                 reportModel.DocumentId = documentId;
 
                 await _dbContext.Collection.InsertOneAsync(reportModel);
-                return OperationResult.Succeeded("Document saved successfully.");
+                return OperationResult.Succeeded($"Document saved successfully with ID: {documentId}", documentId);
             }
             catch (Exception ex)
             {
