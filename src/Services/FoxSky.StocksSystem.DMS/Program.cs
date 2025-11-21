@@ -2,7 +2,8 @@
 using FoxSky.StocksSystem.DMS.MessageBroker;
 using Microsoft.Extensions.DependencyInjection;
 using FoxSky.StocksSystem.DMS.Services;
-using MongoDB;
+using FoxSky.StocksSystem.DMS.Database.Context;
+using FoxSky.StocksSystem.SharedServices.Models;
 
 namespace FoxSky.StocksSystem.DMS
 {
@@ -45,6 +46,15 @@ namespace FoxSky.StocksSystem.DMS
         private static ServiceProvider ConfigureServices()
         {
             var services = new ServiceCollection();
+
+            services.AddSingleton(sp =>
+            {
+                var serverAddress = AppContext.GetData("DbConfig:ServiceAddress") as string;
+                var dbName = AppContext.GetData("DbConfig:DbName") as string;
+                var collection = AppContext.GetData("DbConfig:Collection") as string;
+
+                return new DMSDbContext<DmsReportModel>(serverAddress, dbName, collection);
+            });
 
             services.AddScoped<IDMSService, DMSService>();
             services.AddScoped<IDMSMessageBroker, DMSMessageBroker>();

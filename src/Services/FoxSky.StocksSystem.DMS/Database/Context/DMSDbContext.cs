@@ -3,11 +3,11 @@ using MongoDB.Driver;
 
 namespace FoxSky.StocksSystem.DMS.Database.Context
 {
-    public class DMSDbContext
+    public class DMSDbContext<T> where T : class
     {
         public readonly MongoClient Client;
         public IMongoDatabase Database;
-        public IMongoCollection<BsonDocument> Collection;
+        public IMongoCollection<T> Collection;
 
         public DMSDbContext(string serviceAddress, string dbName, string collection) 
         {
@@ -21,7 +21,7 @@ namespace FoxSky.StocksSystem.DMS.Database.Context
                 }
 
                 Database = Client.GetDatabase(dbName);
-                Collection = Database.GetCollection<BsonDocument>(collection);
+                Collection = Database.GetCollection<T>(collection);
             }
             catch (Exception ex)
             {
