@@ -6,7 +6,8 @@ public class ConfigVariablesReader
 {
     public static void LoadEnv()
     {
-        var filePath = FindEnvFile();
+        string fileName = ".env";
+        var filePath = FindConfigFile(fileName);
 
         if (!File.Exists(filePath) || filePath == null)
             throw new FileNotFoundException($"The file '{filePath}' does not exist.");
@@ -30,7 +31,8 @@ public class ConfigVariablesReader
 
     public static void LoadAppsettingsEnv()
     {
-        var filePath = FindAppsettingsFile();
+        string fileName = "appsettings.json";
+        var filePath = FindConfigFile(fileName);
 
         if (!File.Exists(filePath) || filePath == null)
             throw new FileNotFoundException($"The file '{filePath}' does not exist.");
@@ -60,31 +62,13 @@ public class ConfigVariablesReader
         }
     }
 
-    private static string? FindEnvFile()
+    private static string? FindConfigFile(string fileName)
     {
         DirectoryInfo currentDir = new(AppDomain.CurrentDomain.BaseDirectory);
 
         while (currentDir != null)
         {
-            string configPath = Path.Combine(currentDir.FullName, "Config\\.env");
-            if (File.Exists(configPath))
-            {
-                return configPath;
-            }
-
-            currentDir = currentDir.Parent!;
-        }
-
-        return null;
-    }
-
-    private static string? FindAppsettingsFile()
-    {
-        DirectoryInfo currentDir = new(AppDomain.CurrentDomain.BaseDirectory);
-
-        while (currentDir != null)
-        {
-            string configPath = Path.Combine(currentDir.FullName, "Config\\appsettings.json");
+            string configPath = Path.Combine(currentDir.FullName, $"Config\\{fileName}");
             if (File.Exists(configPath))
             {
                 return configPath;
