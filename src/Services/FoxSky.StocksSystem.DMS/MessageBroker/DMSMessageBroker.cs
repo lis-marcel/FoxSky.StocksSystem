@@ -105,10 +105,19 @@ namespace FoxSky.StocksSystem.DMS.MessageBroker
                     if (routingKey == _dmsReportRoutingKey)
                     {
                         Console.WriteLine($"[DMS] received data.");
-                        var messageData = _dmsService.ProcessSaveDocumentRequest(body);
+                        var resusltData = _dmsService.ProcessSaveDocumentRequest(body);
+
+                        if (resusltData.Result.Success)
+                        {
+                            Console.WriteLine($"[DMS] Saving operation suceeded: {resusltData.Result.Message}");
+                        }
+                        else
+                        {
+                            Console.WriteLine($"[DMS] Saving operation failed: {resusltData.Result.Message}");
+                        }
                     }
                     else
-                    {
+                    {   
                         Console.WriteLine("[DMS] Something went wrong during data TX/RX");
                     }
                 }
