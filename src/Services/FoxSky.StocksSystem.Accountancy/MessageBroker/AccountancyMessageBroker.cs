@@ -9,6 +9,7 @@ namespace FoxSky.StocksSystem.Accountancy.MessageBroker
 {
     internal class AccountancyMessageBroker : IAccountancyMessageBroker, IDisposable
     {
+        #region Fields
         private readonly IConnection _connection;
         private readonly IChannel _channel;
         private readonly string _stocksProviderExchangeName;
@@ -20,48 +21,63 @@ namespace FoxSky.StocksSystem.Accountancy.MessageBroker
         private readonly string _ceoExchangeName;
         private readonly string _accountancyReportRequestRoutingKey;
         private readonly string _dmsReportRoutingKey;
+        private readonly string _reportNotificationRoutingKey;
+        private readonly string _dmsExchangeName;
         private readonly IAccountancyService _accountancyService;
         private AsyncEventingBasicConsumer? _consumer;
         private bool _disposed;
         private CancellationTokenSource? _cancellationTokenSource;
+        #endregion
 
         public AccountancyMessageBroker(IAccountancyService accountancyService)
         {
             _accountancyService = accountancyService ?? throw new ArgumentNullException(nameof(accountancyService));
 
+            #region Server Configuration
             var messageUri = Environment.GetEnvironmentVariable("MESSAGE_BROKER_URI")
                 ?? throw new InvalidOperationException("MESSAGE_BROKER_URI environment variable is not set");
-
+            #endregion
+            #region Exchanges
             _accountancyExchangeName = Environment.GetEnvironmentVariable("ACCOUNTANCY_EXCHANGE_NAME")
                 ?? throw new InvalidOperationException("ACCOUNTANCY_EXCHANGE_NAME environment variable is not set");
 
             _stocksProviderExchangeName = Environment.GetEnvironmentVariable("STOCKS_PROVIDER_EXCHANGE_NAME")
                 ?? throw new InvalidOperationException("STOCKS_PROVIDER_EXCHANGE_NAME environment variable is not set");
 
-            _ceoDataRoutingKey = Environment.GetEnvironmentVariable("CEO_DATA_ROUTING_KEY")
-                ?? throw new InvalidOperationException("CEO_DATA_ROUTING_KEY environment variable is not set");
-
-            _accountancyQueueName = Environment.GetEnvironmentVariable("ACCOUNTANCY_QUEUE_NAME")
-                ?? throw new InvalidOperationException("ACCOUNTANCY_QUEUE_NAME environment variable is not set");
-
-            _accountancyDataRoutingKey = Environment.GetEnvironmentVariable("ACCOUNTANCY_DATA_ROUTING_KEY")
-                ?? throw new InvalidOperationException("ACCOUNTANCY_DATA_ROUTING_KEY environment variable is not set");
+            _dmsExchangeName = Environment.GetEnvironmentVariable("DMS_EXCHANGE_NAME")
+                ?? throw new InvalidOperationException("DMS_EXCHANGE_NAME environment variable is not set");
 
             _tradersExchangeName = Environment.GetEnvironmentVariable("TRADERS_EXCHANGE_NAME")
                 ?? throw new InvalidOperationException("TRADERS_EXCHANGE_NAME environment variable is not set");
 
-            _accountancyReportRequestRoutingKey = Environment.GetEnvironmentVariable("ACCOUNTANCY_REPORT_REQUEST_ROUTING_KEY")
-                ?? throw new InvalidOperationException("ACCOUNTANCY_REPORT_REQUEST_ROUTING_KEY environment variable is not set");
-
             _ceoExchangeName = Environment.GetEnvironmentVariable("CEO_EXCHANGE_NAME")
                 ?? throw new InvalidOperationException("CEO_EXCHANGE_NAME environment variable is not set");
+            #endregion
+            #region Queues
+            _accountancyQueueName = Environment.GetEnvironmentVariable("ACCOUNTANCY_QUEUE_NAME")
+                ?? throw new InvalidOperationException("ACCOUNTANCY_QUEUE_NAME environment variable is not set");
+            #endregion
+            #region Routing Keys
+            _accountancyReportRequestRoutingKey = Environment.GetEnvironmentVariable("ACCOUNTANCY_REPORT_REQUEST_ROUTING_KEY")
+                ?? throw new InvalidOperationException("ACCOUNTANCY_REPORT_REQUEST_ROUTING_KEY environment variable is not set");
 
             _dmsReportRoutingKey = Environment.GetEnvironmentVariable("DMS_REPORT_ROUTING_KEY")
                 ?? throw new InvalidOperationException("DMS_REPORT_ROUTING_KEY environment variable is not set");
 
+            _reportNotificationRoutingKey = Environment.GetEnvironmentVariable("REPORT_NOTIFICATION_ROUTING_KEY") 
+                ?? throw new InvalidOperationException("REPORT_NOTIFICATION_ROUTING_KEY environment variable is not set");
+
+            _ceoDataRoutingKey = Environment.GetEnvironmentVariable("CEO_DATA_ROUTING_KEY")
+                ?? throw new InvalidOperationException("CEO_DATA_ROUTING_KEY environment variable is not set");
+
+            _accountancyDataRoutingKey = Environment.GetEnvironmentVariable("ACCOUNTANCY_DATA_ROUTING_KEY")
+                ?? throw new InvalidOperationException("ACCOUNTANCY_DATA_ROUTING_KEY environment variable is not set");
+            #endregion
+            #region Connection Setup
             var factory = new ConnectionFactory { Uri = new Uri(messageUri) };
             _connection = factory.CreateConnectionAsync().GetAwaiter().GetResult();
             _channel = _connection.CreateChannelAsync().GetAwaiter().GetResult();
+            #endregion
         }
 
         public async Task InitializeAsync()
@@ -124,7 +140,22 @@ namespace FoxSky.StocksSystem.Accountancy.MessageBroker
                     exchange: _ceoExchangeName,
                     routingKey: _accountancyReportRequestRoutingKey);
 
-                Console.WriteLine($"[AccountancyService] Bound queue to traders exchange with routing key: {_accountancyDataRoutingKey}");
+                Console.WriteLine($"[AccountancyService] Bound queue to CEO exchange with routing key: {_accountancyDataRoutingKey}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[AccountancyService] Error binding to traders exchange: {ex.Message}");
+            }
+
+            // Bind to DMS exchange
+            try
+            {
+                await _channel.QueueBindAsync(
+                    queue: _accountancyQueueName,
+                    exchange: _dmsExchangeName,
+                    routingKey: _reportNotificationRoutingKey);
+
+                Console.WriteLine($"[AccountancyService] Bound queue to DMS exchange with routing key: {_accountancyDataRoutingKey}");
             }
             catch (Exception ex)
             {
@@ -214,6 +245,11 @@ namespace FoxSky.StocksSystem.Accountancy.MessageBroker
                         {
                             Console.WriteLine($"[AccountancyService] Failed to process message: {result.Message}");
                         }
+                    }
+
+                    if (routingKey == _reportNotificationRoutingKey)
+                    {
+                        Console.WriteLine($"[AccountancyService] Successfully processed DMS report notification: {message}");
                     }
                 }
                 catch (Exception ex)
