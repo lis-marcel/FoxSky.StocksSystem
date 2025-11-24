@@ -29,16 +29,8 @@ namespace FoxSky.StocksSystem.DMS.Services
 
                 if (processingResult.Success)
                 {
-                    // Example of how you might visualize the document after saving.
-                    // You would need the documentId from the result.
-                    if (processingResult.Data is ObjectId documentId)
-                    {
-                        var documentBytes = await GetDocumentAsync(documentId);
-                        if (documentBytes != null)
-                        {
-                            VisualizeDocument(documentBytes);
-                        }
-                    }
+                    // TODO: send message to oderer service to notify about new document
+
                     return OperationResult.Succeeded(message: processingResult.Message);
                 }
 

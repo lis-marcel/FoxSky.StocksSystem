@@ -53,7 +53,7 @@ namespace FoxSky.StocksSystem.DMS
                 var dbName = AppContext.GetData("DbConfig:DbName") as string;
                 var collection = AppContext.GetData("DbConfig:Collection") as string;
 
-                return new DMSDbContext<DmsReportModel>(serverAddress, dbName, collection);
+                return new DMSDbContext<DmsReportModel>(serverAddress!, dbName!, collection!);
             });
 
             services.AddScoped<IDMSService, DMSService>();

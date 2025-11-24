@@ -26,23 +26,23 @@ namespace FoxSky.StocksSystem.DMS.MessageBroker
         {
             _dmsService = dmsService ?? throw new ArgumentNullException(nameof(dmsService)); ;
 
-            messageUri = Environment.GetEnvironmentVariable("MESSAGE_BROKER_URI") 
-                ?? throw new InvalidOperationException("MESSAGE_BROKER_URI value not set");
+            messageUri = AppContext.GetData(name: "MessageBrokerConfig:ServerConfig:MessageBrokerURI") as string 
+                ?? throw new InvalidOperationException("MessageBrokerURI value not set");
 
-            _accountancyExchangeName = Environment.GetEnvironmentVariable("ACCOUNTANCY_EXCHANGE_NAME")
-                ?? throw new InvalidOperationException("ACCOUNTANCY_EXCHANGE_NAME value not set");
+            _accountancyExchangeName = AppContext.GetData(name: "MessageBrokerConfig:ExchangesConfig:AccountancyExchangeName") as string 
+                ?? throw new InvalidOperationException("AccountancyExchangeName value not set");
 
-            _dmsExchangeName = Environment.GetEnvironmentVariable("DMS_EXCHANGE_NAME") 
-                ?? throw new InvalidOperationException("DMS_EXCHANGE_NAME value not set");
+            _dmsExchangeName = AppContext.GetData(name: "MessageBrokerConfig:ExchangesConfig:DmsExchangeName") as string 
+                ?? throw new InvalidOperationException("DmsExchangeName value not set");
 
-            _accountancyReportDocumentRoutingKey = Environment.GetEnvironmentVariable("ACCOUNTANCY_REPORT_DOCUMENT_ROUTING_KEY") 
-                ?? throw new InvalidOperationException("ACCOUNTANCY_REPORT_DOCUMENT_ROUTING_KEY value not set");
+            _accountancyReportDocumentRoutingKey = AppContext.GetData(name: "MessageBrokerConfig:RoutingKeysConfig:AccountancyRoutingKey") as string 
+                ?? throw new InvalidOperationException("AccountancyRoutingKey value not set");
 
-            _dmsQueueName = Environment.GetEnvironmentVariable("DMS_QUEUE_NAME") 
-                ?? throw new InvalidOperationException("DMS_QUEUE_NAME value not set");
+            _dmsQueueName = AppContext.GetData(name: "MessageBrokerConfig:QueuesConfig:DmsQueueName") as string 
+                ?? throw new InvalidOperationException("DmsQueueName value not set");
 
-            _dmsReportRoutingKey = Environment.GetEnvironmentVariable("DMS_REPORT_ROUTING_KEY")
-                ?? throw new InvalidOperationException("DMS_REPORT_ROUTING_KEY value not set");
+            _dmsReportRoutingKey = AppContext.GetData(name: "MessageBrokerConfig:RoutingKeysConfig:DmsReportSaveRoutingKey") as string 
+                ?? throw new InvalidOperationException("DmsReportSaveRoutingKey value not set");
 
             var factory = new ConnectionFactory { Uri = new Uri(messageUri) };
             _connection = factory.CreateConnectionAsync().GetAwaiter().GetResult();
