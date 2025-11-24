@@ -10,6 +10,7 @@ namespace FoxSky.StocksSystem.DMS.MessageBroker
 {
     public class DMSMessageBroker : IDMSMessageBroker, IDisposable
     {
+        #region Fields
         private readonly IConnection _connection;
         private readonly IChannel _channel;
         private readonly string messageUri;
@@ -23,27 +24,31 @@ namespace FoxSky.StocksSystem.DMS.MessageBroker
         private bool _disposed;
         private CancellationTokenSource? _cancellationTokenSource;
         private readonly IDMSService _dmsService;
+        #endregion
 
         public DMSMessageBroker(IDMSService dmsService)
         {
             _dmsService = dmsService ?? throw new ArgumentNullException(nameof(dmsService)); ;
 
-            // Server Config
+            #region Server Configuration
             messageUri = AppContext.GetData(name: "MessageBrokerConfig:ServerConfig:MessageBrokerURI") as string 
                 ?? throw new InvalidOperationException("MessageBrokerURI value not set");
+            #endregion
 
-            // Exchanges
+            #region Exchanges
             _accountancyExchangeName = AppContext.GetData(name: "MessageBrokerConfig:ExchangesConfig:AccountancyExchangeName") as string 
                 ?? throw new InvalidOperationException("AccountancyExchangeName value not set");
 
             _dmsExchangeName = AppContext.GetData(name: "MessageBrokerConfig:ExchangesConfig:DmsExchangeName") as string 
                 ?? throw new InvalidOperationException("DmsExchangeName value not set");
+            #endregion
 
-            // Queues
+            #region Queues
             _dmsQueueName = AppContext.GetData(name: "MessageBrokerConfig:QueuesConfig:DmsQueueName") as string 
                 ?? throw new InvalidOperationException("DmsQueueName value not set");
+            #endregion
 
-            // Routing Keys
+            #region Routing Keys
             _dmsReportRoutingKey = AppContext.GetData(name: "MessageBrokerConfig:RoutingKeysConfig:DmsReportSaveRoutingKey") as string 
                 ?? throw new InvalidOperationException("DmsReportSaveRoutingKey value not set");
 
@@ -52,11 +57,13 @@ namespace FoxSky.StocksSystem.DMS.MessageBroker
 
             _accountancyReportDocumentRoutingKey = AppContext.GetData(name: "MessageBrokerConfig:RoutingKeysConfig:AccountancyRoutingKey") as string
                 ?? throw new InvalidOperationException("AccountancyRoutingKey value not set");
+            #endregion
 
-            // Create Connection
+            #region Create Connection
             var factory = new ConnectionFactory { Uri = new Uri(messageUri) };
             _connection = factory.CreateConnectionAsync().GetAwaiter().GetResult();
             _channel = _connection.CreateChannelAsync().GetAwaiter().GetResult();
+            #endregion
         }
 
         public async Task InitializeAsync()
@@ -106,7 +113,7 @@ namespace FoxSky.StocksSystem.DMS.MessageBroker
                 routingKey: receivcer,
                 body: body);
 
-            Console.WriteLine($"[AccountancyService] Published message");
+            Console.WriteLine($"[DMS] Published message to {exchange}");
         }
 
         public async Task PublishMessageAsync(string exchange, string receivcer, byte[] message)
@@ -118,7 +125,7 @@ namespace FoxSky.StocksSystem.DMS.MessageBroker
                 routingKey: receivcer,
                 body: message);
 
-            Console.WriteLine($"[AccountancyService] Published message");
+            Console.WriteLine($"[DMS] Published message to {exchange}");
         }
 
         public async Task<OperationResult> ReceiveMessageAsync()
@@ -128,7 +135,7 @@ namespace FoxSky.StocksSystem.DMS.MessageBroker
             var completionSource = new TaskCompletionSource<OperationResult>();
 
             _consumer = new AsyncEventingBasicConsumer(_channel);
-            _consumer.ReceivedAsync += async (model, ea) =>
+            _consumer.ReceivedAsync += async (model, ea) => await Task.Run(() =>
             {
                 var body = ea.Body.ToArray();
                 var routingKey = ea.RoutingKey;
@@ -165,7 +172,7 @@ namespace FoxSky.StocksSystem.DMS.MessageBroker
                 {
                     Console.WriteLine($"[DMS] Error processing message: {ex.Message}");
                 }
-            };
+            });
 
             string consumerTag = await _channel.BasicConsumeAsync(
                 queue: _dmsQueueName,
