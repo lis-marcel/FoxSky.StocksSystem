@@ -21,7 +21,7 @@ namespace FoxSky.StocksSystem.DMS.Services
             BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.Standard));
         }
 
-        public async Task<OperationResult> ProcessSaveDocumentRequest(byte[] data)
+        public async Task<OperationResult> ProcessSaveDocumentRequestAsync(byte[] data)
         {
             try
             {
@@ -31,7 +31,7 @@ namespace FoxSky.StocksSystem.DMS.Services
                 {
                     // TODO: send message to oderer service to notify about new document
 
-                    return OperationResult.Succeeded(message: processingResult.Message);
+                    return OperationResult.Succeeded(message: processingResult.Message, data: processingResult.Data);
                 }
 
                 return processingResult;
@@ -73,7 +73,7 @@ namespace FoxSky.StocksSystem.DMS.Services
                 reportModel.DocumentId = documentId;
 
                 await _dbContext.Collection.InsertOneAsync(reportModel);
-                return OperationResult.Succeeded($"Document saved successfully with ID: {documentId}", documentId);
+                return OperationResult.Succeeded(message: $"Document saved successfully with ID: {documentId}", data: documentId);
             }
             catch (Exception ex)
             {

@@ -135,7 +135,7 @@ namespace FoxSky.StocksSystem.DMS.MessageBroker
             var completionSource = new TaskCompletionSource<OperationResult>();
 
             _consumer = new AsyncEventingBasicConsumer(_channel);
-            _consumer.ReceivedAsync += async (model, ea) => await Task.Run(() =>
+            _consumer.ReceivedAsync += async (model, ea) => await Task.Run(async () =>
             {
                 var body = ea.Body.ToArray();
                 var routingKey = ea.RoutingKey;
@@ -147,20 +147,22 @@ namespace FoxSky.StocksSystem.DMS.MessageBroker
                     if (routingKey == _dmsReportRoutingKey)
                     {
                         Console.WriteLine($"[DMS] received data.");
-                        var resusltData = _dmsService.ProcessSaveDocumentRequest(body);
+                        var saveResultData = await _dmsService.ProcessSaveDocumentRequestAsync(body);
 
-                        if (resusltData.Result.Success)
+                        if (saveResultData.Success)
                         {
-                            Console.WriteLine($"[DMS] Saving operation suceeded: {resusltData.Result.Message}");
+                            Console.WriteLine($"[DMS] Saving operation suceeded: {saveResultData.Message}");
+
+                            var stringifiedData = saveResultData.Data!.ToString();
 
                             PublishMessageAsync(
                                 exchange: _dmsExchangeName,
                                 receivcer: _dmsReportNotificationRoutingKey,
-                                message: body).GetAwaiter().GetResult();
+                                message: stringifiedData!).GetAwaiter().GetResult();
                         }
                         else
                         {
-                            Console.WriteLine($"[DMS] Saving operation failed: {resusltData.Result.Message}");
+                            Console.WriteLine($"[DMS] Saving operation failed: {saveResultData.Message}");
                         }
                     }
                     else
