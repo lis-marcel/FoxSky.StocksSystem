@@ -3,6 +3,7 @@ using FoxSky.StocksSystem.SharedServices;
 using FoxSky.StocksSystem.SharedServices.Models;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using System.Text;
 using System.Text.Json;
 
 namespace FoxSky.StocksSystem.DMS.MessageBroker
@@ -17,6 +18,7 @@ namespace FoxSky.StocksSystem.DMS.MessageBroker
         private readonly string _dmsQueueName;
         private readonly string _accountancyReportDocumentRoutingKey;
         private readonly string _dmsReportRoutingKey;
+        private readonly string _dmsReportNotificationRoutingKey;
         private AsyncEventingBasicConsumer? _consumer;
         private bool _disposed;
         private CancellationTokenSource? _cancellationTokenSource;
@@ -26,24 +28,32 @@ namespace FoxSky.StocksSystem.DMS.MessageBroker
         {
             _dmsService = dmsService ?? throw new ArgumentNullException(nameof(dmsService)); ;
 
+            // Server Config
             messageUri = AppContext.GetData(name: "MessageBrokerConfig:ServerConfig:MessageBrokerURI") as string 
                 ?? throw new InvalidOperationException("MessageBrokerURI value not set");
 
+            // Exchanges
             _accountancyExchangeName = AppContext.GetData(name: "MessageBrokerConfig:ExchangesConfig:AccountancyExchangeName") as string 
                 ?? throw new InvalidOperationException("AccountancyExchangeName value not set");
 
             _dmsExchangeName = AppContext.GetData(name: "MessageBrokerConfig:ExchangesConfig:DmsExchangeName") as string 
                 ?? throw new InvalidOperationException("DmsExchangeName value not set");
 
-            _accountancyReportDocumentRoutingKey = AppContext.GetData(name: "MessageBrokerConfig:RoutingKeysConfig:AccountancyRoutingKey") as string 
-                ?? throw new InvalidOperationException("AccountancyRoutingKey value not set");
-
+            // Queues
             _dmsQueueName = AppContext.GetData(name: "MessageBrokerConfig:QueuesConfig:DmsQueueName") as string 
                 ?? throw new InvalidOperationException("DmsQueueName value not set");
 
+            // Routing Keys
             _dmsReportRoutingKey = AppContext.GetData(name: "MessageBrokerConfig:RoutingKeysConfig:DmsReportSaveRoutingKey") as string 
                 ?? throw new InvalidOperationException("DmsReportSaveRoutingKey value not set");
 
+            _dmsReportNotificationRoutingKey = AppContext.GetData(name: "MessageBrokerConfig:RoutingKeysConfig:ReportNotificationRoutingKey") as string 
+                ?? throw new InvalidOperationException("ReportNotificationRoutingKey value not set");
+
+            _accountancyReportDocumentRoutingKey = AppContext.GetData(name: "MessageBrokerConfig:RoutingKeysConfig:AccountancyRoutingKey") as string
+                ?? throw new InvalidOperationException("AccountancyRoutingKey value not set");
+
+            // Create Connection
             var factory = new ConnectionFactory { Uri = new Uri(messageUri) };
             _connection = factory.CreateConnectionAsync().GetAwaiter().GetResult();
             _channel = _connection.CreateChannelAsync().GetAwaiter().GetResult();
@@ -86,6 +96,31 @@ namespace FoxSky.StocksSystem.DMS.MessageBroker
             }
         }
 
+        public async Task PublishMessageAsync(string exchange, string receivcer, string message)
+        {
+            ThrowIfDisposed();
+            var body = Encoding.UTF8.GetBytes(message);
+
+            await _channel.BasicPublishAsync(
+                exchange: exchange,
+                routingKey: receivcer,
+                body: body);
+
+            Console.WriteLine($"[AccountancyService] Published message");
+        }
+
+        public async Task PublishMessageAsync(string exchange, string receivcer, byte[] message)
+        {
+            ThrowIfDisposed();
+
+            await _channel.BasicPublishAsync(
+                exchange: exchange,
+                routingKey: receivcer,
+                body: message);
+
+            Console.WriteLine($"[AccountancyService] Published message");
+        }
+
         public async Task<OperationResult> ReceiveMessageAsync()
         {
             ThrowIfDisposed();
@@ -110,6 +145,11 @@ namespace FoxSky.StocksSystem.DMS.MessageBroker
                         if (resusltData.Result.Success)
                         {
                             Console.WriteLine($"[DMS] Saving operation suceeded: {resusltData.Result.Message}");
+
+                            PublishMessageAsync(
+                                exchange: _dmsExchangeName,
+                                receivcer: _dmsReportNotificationRoutingKey,
+                                message: body).GetAwaiter().GetResult();
                         }
                         else
                         {
