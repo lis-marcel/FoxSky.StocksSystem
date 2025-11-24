@@ -11,9 +11,9 @@ namespace FoxSky.StocksService.CEO.Services
             _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
         }
 
-        public Task<OperationResult> RequestReport(DateTime beginningDate, DateTime endDate)
+        public void ReceiveReportData(string data)
         {
-            return Task.FromResult(OperationResult.Succeeded("Report request received.", new { BeginningDate = beginningDate, EndDate = endDate }));
+            Console.WriteLine($"[CEOService] Received report ID: {data}");
         }
     }
 }

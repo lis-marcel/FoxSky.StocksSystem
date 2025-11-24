@@ -28,9 +28,19 @@ namespace FoxSky.StocksService.CEO
 
                     string datesRange = "2025-01-05 09:30:00,2025-01-12 15:05:00"; // Example date range
 
-                    await messageQueueHandler.PublishMessageAsync(datesRange);
-                    Console.WriteLine("[CEOService] Request sent. Press any key to exit...");
-                    Console.ReadKey();
+                    await messageQueueHandler.PublishMessageAsync(
+                        Environment.GetEnvironmentVariable("CEO_EXCHANGE_NAME")!,
+                        Environment.GetEnvironmentVariable("ACCOUNTANCY_REPORT_REQUEST_ROUTING_KEY")!,
+                        datesRange);
+                    Console.WriteLine("[CEOService] Report request sent.");
+
+                    // Continue using messageQueueHandler within this scope
+                    var processingResult = await messageQueueHandler.ReceiveMessageAsync();
+
+                    if (!processingResult.Success)
+                    {
+                        Console.WriteLine($"[CEOService] Error: {processingResult.Message}");
+                    }
                 }
             }
             catch (Exception ex)

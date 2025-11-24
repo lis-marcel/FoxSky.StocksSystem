@@ -1,4 +1,5 @@
 ﻿using FoxSky.StocksService.CEO.Services;
+using FoxSky.StocksSystem.SharedServices;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
@@ -10,8 +11,11 @@ namespace FoxSky.StocksService.CEO.MessageBroker
         private readonly IConnection _connection;
         private readonly IChannel _channel;
         private readonly string _ceoExchangeName;
+        private readonly string _dmsExchangeName;
         private readonly string _accountancyReportRequestRoutingKey;
         private readonly string _accountancyQueueName;
+        private readonly string _reportNotificationRoutingKey;
+        private readonly string _ceoQueueName;
         private readonly ICEOService _ceoService;
         private AsyncEventingBasicConsumer? _consumer;
         private bool _disposed;
@@ -27,8 +31,17 @@ namespace FoxSky.StocksService.CEO.MessageBroker
             _ceoExchangeName = Environment.GetEnvironmentVariable("CEO_EXCHANGE_NAME")
                 ?? throw new InvalidOperationException("CEO_QUEUE_NAME environment variable is not set");
 
+            _dmsExchangeName = Environment.GetEnvironmentVariable("DMS_EXCHANGE_NAME")
+                ?? throw new InvalidOperationException("CEO_QUEUE_NAME environment variable is not set");
+
+            _ceoQueueName = Environment.GetEnvironmentVariable("CEO_QUEUE_NAME") 
+                ?? throw new InvalidOperationException("CEO_QUEUE_NAME environment variable is not set");
+
             _accountancyReportRequestRoutingKey = Environment.GetEnvironmentVariable("ACCOUNTANCY_REPORT_REQUEST_ROUTING_KEY")
                 ?? throw new InvalidOperationException("ACCOUNTANCY_REPORT_REQUEST_ROUTING_KEY environment variable is not set");
+
+            _reportNotificationRoutingKey = Environment.GetEnvironmentVariable("REPORT_NOTIFICATION_ROUTING_KEY")
+                ?? throw new InvalidOperationException("REPORT_NOTIFICATION_ROUTING_KEY environment variable is not set");
 
             var factory = new ConnectionFactory { Uri = new Uri(messageUri) };
             _connection = factory.CreateConnectionAsync().GetAwaiter().GetResult();
@@ -37,31 +50,133 @@ namespace FoxSky.StocksService.CEO.MessageBroker
 
         public async Task InitializeAsync()
         {
-            Console.WriteLine("[CEOService] Initializing exchange...");
+            Console.WriteLine("[CEOService] Initializing exchange and queue...");
 
-            await _channel.ExchangeDeclareAsync(
+            try
+            {
+                await _channel.QueueDeclareAsync(
+                queue: _ceoQueueName,
+                durable: false,
+                exclusive: false,
+                autoDelete: false,
+                arguments: null);
+
+                Console.WriteLine($"[CEOService] Declared queue: {_ceoQueueName}");
+            }
+            catch
+            (Exception ex)
+            {
+                Console.WriteLine($"[CEOService] Error during initialization: {ex.Message}");
+            }
+
+            try
+            {
+                await _channel.ExchangeDeclareAsync(
                 exchange: _ceoExchangeName,
                 type: ExchangeType.Topic,
                 durable: false,
                 autoDelete: false,
                 arguments: null);
 
-            Console.WriteLine($"[CEOService] Declared exchange: {_ceoExchangeName}");
+                Console.WriteLine($"[CEOService] Declared exchange: {_ceoExchangeName}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[CEOService] Error declaring queue: {ex.Message}");
+            }
+
+            try
+            {
+                await _channel.QueueBindAsync(
+                    queue: _ceoQueueName,
+                    exchange: _dmsExchangeName,
+                    routingKey: _reportNotificationRoutingKey);
+
+                Console.WriteLine($"[CEOService] Bound queue to DMS exchange with routing key: {_reportNotificationRoutingKey}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[CEOService] Error binding queue: {ex.Message}");
+            }
 
             Console.WriteLine("[CEOService] Message queue initialization completed");
         }
 
-        public async Task PublishMessageAsync(string message)
+        public async Task PublishMessageAsync(string exchange, string receivcer, string message)
         {
             ThrowIfDisposed();
             var body = Encoding.UTF8.GetBytes(message);
 
             await _channel.BasicPublishAsync(
-                exchange: _ceoExchangeName,
-                routingKey: _accountancyReportRequestRoutingKey,
+                exchange: exchange,
+                routingKey: receivcer,
                 body: body);
 
             Console.WriteLine($"[CEOService] Published message");
+        }
+
+        public async Task PublishMessageAsync(string exchange, string receivcer, byte[] message)
+        {
+            ThrowIfDisposed();
+
+            await _channel.BasicPublishAsync(
+                exchange: exchange,
+                routingKey: receivcer,
+                body: message);
+
+            Console.WriteLine($"[CEOService] Published message");
+        }
+
+        public async Task<OperationResult> ReceiveMessageAsync()
+        {
+            ThrowIfDisposed();
+            _cancellationTokenSource = new CancellationTokenSource();
+            var completionSource = new TaskCompletionSource<OperationResult>();
+
+            _consumer = new AsyncEventingBasicConsumer(_channel);
+            _consumer.ReceivedAsync += async (model, ea) => await Task.Run(async() =>
+            {
+                var body = ea.Body.ToArray();
+                var message = Encoding.UTF8.GetString(body);
+                var routingKey = ea.RoutingKey;
+
+                Console.WriteLine($"[CEOService] Received message with routing key: {routingKey}");
+                try
+                {
+                    if (routingKey == _reportNotificationRoutingKey)
+                    {
+                        _ceoService.ReceiveReportData(message);
+                    } 
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[CEOService] Error processing message: {ex.Message}");
+                }
+            });
+
+            string consumerTag = await _channel.BasicConsumeAsync(
+                queue: _ceoQueueName,
+                autoAck: true,
+                consumer: _consumer);
+
+            Console.WriteLine($"[CEOService] Waiting for messages. Consumer tag: {consumerTag}");
+            Console.WriteLine("[CEOServiceS] Press Ctrl+C to exit.");
+
+            // Wait until cancellation is requested
+            await Task.Run(() =>
+            {
+                try
+                {
+                    _cancellationTokenSource.Token.WaitHandle.WaitOne();
+                    completionSource.SetResult(OperationResult.Succeeded("Message processing completed"));
+                }
+                catch (Exception ex)
+                {
+                    completionSource.SetResult(OperationResult.Failed($"Error during message processing: {ex.Message}"));
+                }
+            });
+
+            return await completionSource.Task;
         }
 
         public async Task StopReceivingAsync()

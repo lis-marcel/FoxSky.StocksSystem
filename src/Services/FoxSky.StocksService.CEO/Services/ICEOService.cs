@@ -4,6 +4,6 @@ namespace FoxSky.StocksService.CEO.Services
 {
     public interface ICEOService
     {
-        Task<OperationResult> RequestReport(DateTime beginningDate, DateTime endDate);
+        void ReceiveReportData(string data);
     }
 }
