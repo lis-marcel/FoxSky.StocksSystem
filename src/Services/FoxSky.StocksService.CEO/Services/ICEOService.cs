@@ -2,8 +2,10 @@
 
 namespace FoxSky.StocksService.CEO.Services
 {
-    public interface ICEOService
+    public interface ICeoService
     {
-        void ReceiveReportData(string data);
+        Task<OperationResult> ReceiveReportData(string data);
+        Task<OperationResult> RequestReportGeneration();
+        Task<OperationResult> DownloadReport(string reportId);
     }
 }

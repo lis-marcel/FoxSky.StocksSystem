@@ -16,12 +16,12 @@ namespace FoxSky.StocksService.CEO.MessageBroker
         private readonly string _accountancyQueueName;
         private readonly string _reportNotificationRoutingKey;
         private readonly string _ceoQueueName;
-        private readonly ICEOService _ceoService;
+        private readonly ICeoService _ceoService;
         private AsyncEventingBasicConsumer? _consumer;
         private bool _disposed;
         private CancellationTokenSource? _cancellationTokenSource;
 
-        public CEOMessageBroker(ICEOService ceoService)
+        public CEOMessageBroker(ICeoService ceoService)
         {
             _ceoService = ceoService ?? throw new ArgumentNullException(nameof(ceoService));
 
@@ -50,7 +50,7 @@ namespace FoxSky.StocksService.CEO.MessageBroker
 
         public async Task InitializeAsync()
         {
-            Console.WriteLine("[CEOService] Initializing exchange and queue...");
+            Console.WriteLine("[CeoService] Initializing exchange and queue...");
 
             try
             {
@@ -61,12 +61,12 @@ namespace FoxSky.StocksService.CEO.MessageBroker
                 autoDelete: false,
                 arguments: null);
 
-                Console.WriteLine($"[CEOService] Declared queue: {_ceoQueueName}");
+                Console.WriteLine($"[CeoService] Declared queue: {_ceoQueueName}");
             }
             catch
             (Exception ex)
             {
-                Console.WriteLine($"[CEOService] Error during initialization: {ex.Message}");
+                Console.WriteLine($"[CeoService] Error during initialization: {ex.Message}");
             }
 
             try
@@ -78,11 +78,11 @@ namespace FoxSky.StocksService.CEO.MessageBroker
                 autoDelete: false,
                 arguments: null);
 
-                Console.WriteLine($"[CEOService] Declared exchange: {_ceoExchangeName}");
+                Console.WriteLine($"[CeoService] Declared exchange: {_ceoExchangeName}");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[CEOService] Error declaring queue: {ex.Message}");
+                Console.WriteLine($"[CeoService] Error declaring queue: {ex.Message}");
             }
 
             try
@@ -92,14 +92,14 @@ namespace FoxSky.StocksService.CEO.MessageBroker
                     exchange: _dmsExchangeName,
                     routingKey: _reportNotificationRoutingKey);
 
-                Console.WriteLine($"[CEOService] Bound queue to DMS exchange with routing key: {_reportNotificationRoutingKey}");
+                Console.WriteLine($"[CeoService] Bound queue to DMS exchange with routing key: {_reportNotificationRoutingKey}");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[CEOService] Error binding queue: {ex.Message}");
+                Console.WriteLine($"[CeoService] Error binding queue: {ex.Message}");
             }
 
-            Console.WriteLine("[CEOService] Message queue initialization completed");
+            Console.WriteLine("[CeoService] Message queue initialization completed");
         }
 
         public async Task PublishMessageAsync(string exchange, string receivcer, string message)
@@ -112,7 +112,7 @@ namespace FoxSky.StocksService.CEO.MessageBroker
                 routingKey: receivcer,
                 body: body);
 
-            Console.WriteLine($"[CEOService] Published message");
+            Console.WriteLine($"[CeoService] Published message");
         }
 
         public async Task PublishMessageAsync(string exchange, string receivcer, byte[] message)
@@ -124,7 +124,7 @@ namespace FoxSky.StocksService.CEO.MessageBroker
                 routingKey: receivcer,
                 body: message);
 
-            Console.WriteLine($"[CEOService] Published message");
+            Console.WriteLine($"[CeoService] Published message");
         }
 
         public async Task<OperationResult> ReceiveMessageAsync()
@@ -140,7 +140,7 @@ namespace FoxSky.StocksService.CEO.MessageBroker
                 var message = Encoding.UTF8.GetString(body);
                 var routingKey = ea.RoutingKey;
 
-                Console.WriteLine($"[CEOService] Received message with routing key: {routingKey}");
+                Console.WriteLine($"[CeoService] Received message with routing key: {routingKey}");
                 try
                 {
                     if (routingKey == _reportNotificationRoutingKey)
@@ -150,7 +150,7 @@ namespace FoxSky.StocksService.CEO.MessageBroker
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"[CEOService] Error processing message: {ex.Message}");
+                    Console.WriteLine($"[CeoService] Error processing message: {ex.Message}");
                 }
             });
 
@@ -159,7 +159,7 @@ namespace FoxSky.StocksService.CEO.MessageBroker
                 autoAck: true,
                 consumer: _consumer);
 
-            Console.WriteLine($"[CEOService] Waiting for messages. Consumer tag: {consumerTag}");
+            Console.WriteLine($"[CeoService] Waiting for messages. Consumer tag: {consumerTag}");
             Console.WriteLine("[CEOServiceS] Press Ctrl+C to exit.");
 
             // Wait until cancellation is requested
@@ -190,7 +190,7 @@ namespace FoxSky.StocksService.CEO.MessageBroker
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"[CEOService] Error stopping consumer: {ex.Message}");
+                    Console.WriteLine($"[CeoService] Error stopping consumer: {ex.Message}");
                 }
             }
         }
