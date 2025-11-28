@@ -39,7 +39,7 @@ namespace FoxSky.StocksService.CEO
                     Console.WriteLine("[CeoService] Initialized. Starting to send requests...");
 
                     var ceoService = scope.ServiceProvider.GetRequiredService<ICeoService>();
-                    await ceoService.RequestReportGeneration();
+                    await ceoService.RequestReportGeneration(messageQueueHandler);
 
                     Console.WriteLine("[CeoService] Report request sent.");
 

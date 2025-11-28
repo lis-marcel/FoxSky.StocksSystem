@@ -1,4 +1,5 @@
-﻿using FoxSky.StocksService.CEO.Services;
+﻿using FoxSky.StocksService.Ceo.Database.Context;
+using FoxSky.StocksService.CEO.Services;
 using FoxSky.StocksSystem.SharedServices;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -10,13 +11,12 @@ namespace FoxSky.StocksService.CEO.MessageBroker
     {
         private readonly IConnection _connection;
         private readonly IChannel _channel;
+        private readonly ICeoService _ceoService;
         private readonly string _ceoExchangeName;
         private readonly string _dmsExchangeName;
         private readonly string _accountancyReportRequestRoutingKey;
-        private readonly string _accountancyQueueName;
         private readonly string _reportNotificationRoutingKey;
         private readonly string _ceoQueueName;
-        private readonly ICeoService _ceoService;
         private AsyncEventingBasicConsumer? _consumer;
         private bool _disposed;
         private CancellationTokenSource? _cancellationTokenSource;
