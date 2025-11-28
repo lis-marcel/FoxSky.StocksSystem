@@ -3,6 +3,7 @@ using FoxSky.StocksSystem.Accountancy.Database.Entities;
 using FoxSky.StocksSystem.Accountancy.Models;
 using FoxSky.StocksSystem.SharedServices;
 using FoxSky.StocksSystem.SharedServices.Models;
+using FoxSky.StocksService.SharedServices.Models;
 using Newtonsoft.Json;
 using QuestPDF.Fluent;
 using QuestPDF.Infrastructure;
@@ -69,7 +70,7 @@ namespace FoxSky.StocksSystem.Accountancy.Services
             }
         }
 
-        public async Task<OperationResult> ProcessReportCreatingRequestAsync(string range)
+        public async Task<OperationResult> ProcessReportCreatingRequestAsync(string parameters)
         {
             QuestPDF.Settings.License = LicenseType.Community;
             DateTime endDate;
@@ -78,39 +79,34 @@ namespace FoxSky.StocksSystem.Accountancy.Services
 
             try
             {
-                if (string.IsNullOrEmpty(range))
-                {
-                    return OperationResult.Failed(message: "At least one date is required for report.");
-                }
-                
-                var datesRange = range.Split(",", StringSplitOptions.RemoveEmptyEntries)
-                    .Select(r => r.Trim()
-                    .ToArray());
+                // Deserialize parameters into ReportRequestModel
+                var requestData = JsonConvert.DeserializeObject<ReportRequestModel>(parameters);
 
-                if (!DateTime.TryParse(datesRange.ElementAtOrDefault(0), out DateTime beginningDate))
+                if (requestData == null)
                 {
-                    return OperationResult.Failed(message: "Invalid beginning date.");
+                    return OperationResult.Failed(message: "Failed to deserialize report request data.");
                 }
 
-                if (datesRange.Count() == 1)
+                DateTime beginningDate = requestData.BeginningDate;
+                endDate = requestData.EndDate;
+
+                // Retrieve trades data based on date range
+                if (beginningDate.Date == endDate.Date)
                 {
-                    endDate = beginningDate;
                     tradeList = await ReportDocumentDataSource.RetreiveTradesData(_context, beginningDate);
                 }
                 else
                 {
-                    if (!DateTime.TryParse(datesRange.ElementAtOrDefault(1), out endDate)) 
-                    {
-                        return OperationResult.Failed(message: "Invalid end date.");
-                    }
-
                     tradeList = await ReportDocumentDataSource.RetreiveTradesData(_context, beginningDate, endDate);
                 }
 
                 reportModel = new ReportModel
                 {
-                    ReportId = Guid.NewGuid(),
-                    Commissioner = new CommissionerDataModel(),
+                    ReportId = requestData.ReportId,
+                    Commissioner = new CommissionerDataModel
+                    {
+                        CommissionerId = requestData.CommissionerId
+                    },
                     Issuer = new IssuerDataModel(),
                     BeginningDate = beginningDate,
                     EndDate = endDate,
@@ -135,8 +131,8 @@ namespace FoxSky.StocksSystem.Accountancy.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[AccountancyService] Error saving trade to database: {ex.Message}");
-                return OperationResult.Failed($"Error saving trade to database: {ex.Message}");
+                Console.WriteLine($"[AccountancyService] Error creating report: {ex.Message}");
+                return OperationResult.Failed($"Error creating report: {ex.Message}");
             }
         }
     }

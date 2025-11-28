@@ -1,5 +1,4 @@
 ﻿using FoxSky.StocksService.Ceo.Database.Context;
-using FoxSky.StocksService.Ceo.Models;
 using FoxSky.StocksService.CEO.MessageBroker;
 using FoxSky.StocksService.SharedServices.Models;
 using FoxSky.StocksSystem.SharedServices;

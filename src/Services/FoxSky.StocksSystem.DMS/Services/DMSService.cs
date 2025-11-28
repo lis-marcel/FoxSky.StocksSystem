@@ -1,6 +1,7 @@
 ﻿using FoxSky.StocksSystem.DMS.Database.Context;
 using FoxSky.StocksSystem.SharedServices;
 using FoxSky.StocksSystem.SharedServices.Models;
+using FoxSky.StocksService.SharedServices.Models;
 using MongoDB.Driver.GridFS;
 using MongoDB.Bson.Serialization;
 using Newtonsoft.Json;
@@ -73,7 +74,15 @@ namespace FoxSky.StocksSystem.DMS.Services
                 reportModel.DocumentId = documentId;
 
                 await _dbContext.Collection.InsertOneAsync(reportModel);
-                return OperationResult.Succeeded(message: $"Document saved successfully with ID: {documentId}", data: documentId);
+                
+                // Create response model with ReportId and DmsDocumentId
+                var responseModel = new ReportResponseModel
+                {
+                    ReportId = reportModel.ReportId,
+                    DmsDocumentId = documentId.ToString()
+                };
+                
+                return OperationResult.Succeeded(message: $"Document saved successfully with ID: {documentId}", data: responseModel);
             }
             catch (Exception ex)
             {

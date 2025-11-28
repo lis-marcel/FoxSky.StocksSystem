@@ -1,10 +1,12 @@
 ﻿using FoxSky.StocksSystem.DMS.Services;
 using FoxSky.StocksSystem.SharedServices;
 using FoxSky.StocksSystem.SharedServices.Models;
+using FoxSky.StocksService.SharedServices.Models;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
 using System.Text.Json;
+using Newtonsoft.Json;
 
 namespace FoxSky.StocksSystem.DMS.MessageBroker
 {
@@ -153,12 +155,23 @@ namespace FoxSky.StocksSystem.DMS.MessageBroker
                         {
                             Console.WriteLine($"[DMS] Saving operation suceeded: {saveResultData.Message}");
 
-                            var stringifiedData = saveResultData.Data!.ToString();
+                            // Serialize ReportResponseModel to JSON
+                            var responseModel = saveResultData.Data as ReportResponseModel;
+                            if (responseModel != null)
+                            {
+                                var jsonResponse = JsonConvert.SerializeObject(responseModel);
 
-                            PublishMessageAsync(
-                                exchange: _dmsExchangeName,
-                                receivcer: _dmsReportNotificationRoutingKey,
-                                message: stringifiedData!).GetAwaiter().GetResult();
+                                PublishMessageAsync(
+                                    exchange: _dmsExchangeName,
+                                    receivcer: _dmsReportNotificationRoutingKey,
+                                    message: jsonResponse).GetAwaiter().GetResult();
+
+                                Console.WriteLine($"[DMS] Published report notification for ReportId: {responseModel.ReportId}");
+                            }
+                            else
+                            {
+                                Console.WriteLine($"[DMS] Failed to cast response data to ReportResponseModel");
+                            }
                         }
                         else
                         {
