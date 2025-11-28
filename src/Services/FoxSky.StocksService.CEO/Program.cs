@@ -33,7 +33,7 @@ namespace FoxSky.StocksService.CEO
 
                 using (var scope = serviceProvider.CreateScope())
                 {
-                    var messageQueueHandler = scope.ServiceProvider.GetRequiredService<ICEOMessageBroker>();
+                    var messageQueueHandler = scope.ServiceProvider.GetRequiredService<ICeoMessageBroker>();
                     await messageQueueHandler.InitializeAsync();
 
                     Console.WriteLine("[CeoService] Initialized. Starting to send requests...");
@@ -70,7 +70,7 @@ namespace FoxSky.StocksService.CEO
                 options.UseSqlite(Environment.GetEnvironmentVariable("DB_HOST")));
 
             // Register CeoMessageBroker as singleton
-            services.AddScoped<ICEOMessageBroker, CEOMessageBroker>();
+            services.AddScoped<ICeoMessageBroker, CeoMessageBroker>();
 
             // Register CeoService as singleton (but now it creates DbContext instances as needed)
             services.AddScoped<ICeoService, CeoService>();

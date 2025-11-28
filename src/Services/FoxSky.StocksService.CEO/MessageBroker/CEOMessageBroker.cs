@@ -6,7 +6,7 @@ using System.Text;
 
 namespace FoxSky.StocksService.CEO.MessageBroker
 {
-    public class CEOMessageBroker : ICEOMessageBroker
+    public class CeoMessageBroker : ICeoMessageBroker
     {
         private readonly IConnection _connection;
         private readonly IChannel _channel;
@@ -21,7 +21,7 @@ namespace FoxSky.StocksService.CEO.MessageBroker
         private bool _disposed;
         private CancellationTokenSource? _cancellationTokenSource;
 
-        public CEOMessageBroker(ICeoService ceoService)
+        public CeoMessageBroker(ICeoService ceoService)
         {
             _ceoService = ceoService ?? throw new ArgumentNullException(nameof(ceoService));
 
@@ -145,7 +145,8 @@ namespace FoxSky.StocksService.CEO.MessageBroker
                 {
                     if (routingKey == _reportNotificationRoutingKey)
                     {
-                        _ceoService.ReceiveReportData(message);
+                        await _ceoService.ReceiveReportData(message);
+                        Console.WriteLine($"[CeoService] Processed report notification message.");
                     } 
                 }
                 catch (Exception ex)
@@ -198,7 +199,7 @@ namespace FoxSky.StocksService.CEO.MessageBroker
         private void ThrowIfDisposed()
         {
             if (_disposed)
-                throw new ObjectDisposedException(nameof(CEOMessageBroker));
+                throw new ObjectDisposedException(nameof(CeoMessageBroker));
         }
 
         public void Dispose()
