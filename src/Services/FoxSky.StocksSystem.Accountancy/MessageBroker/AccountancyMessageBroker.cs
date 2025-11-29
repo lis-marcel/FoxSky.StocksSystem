@@ -249,7 +249,16 @@ namespace FoxSky.StocksSystem.Accountancy.MessageBroker
 
                     if (routingKey == _reportNotificationRoutingKey)
                     {
-                        Console.WriteLine($"[AccountancyService] Successfully processed DMS report notification: {message}");
+                        var result = await _accountancyService.ReceiveReportNotificationAsync(message);
+                        
+                        if (result.Success)
+                        {
+                            Console.WriteLine($"[AccountancyService] Successfully processed DMS report notification: {result.Message}");
+                        }
+                        else
+                        {
+                            Console.WriteLine($"[AccountancyService] Failed to process DMS report notification: {result.Message}");
+                        }
                     }
                 }
                 catch (Exception ex)

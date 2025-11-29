@@ -127,12 +127,59 @@ namespace FoxSky.StocksSystem.Accountancy.Services
                     IssueDate = reportModel.IssueDate
                 };
 
+                // Save report metadata to database
+                var report = new Report
+                {
+                    ReportId = requestData.ReportId,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                await _context.Reports.AddAsync(report);
+                await _context.SaveChangesAsync();
+
+                Console.WriteLine($"[AccountancyService] Report metadata saved with ReportId: {report.ReportId}");
+
                 return OperationResult.Succeeded($"Report genereated successfuly", data: dmsReport);
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"[AccountancyService] Error creating report: {ex.Message}");
                 return OperationResult.Failed($"Error creating report: {ex.Message}");
+            }
+        }
+
+        public async Task<OperationResult> ReceiveReportNotificationAsync(string data)
+        {
+            Console.WriteLine($"[AccountancyService] Received report notification: {data}");
+            try
+            {
+                var response = JsonConvert.DeserializeObject<ReportResponseModel>(data);
+                
+                if (response == null)
+                {
+                    return OperationResult.Failed("Failed to deserialize report response data.");
+                }
+
+                var report = await _context.Reports.FindAsync(response.ReportId);
+                
+                if (report != null)
+                {
+                    report.DmsDocumentId = response.DmsDocumentId;
+                    await _context.SaveChangesAsync();
+                    
+                    Console.WriteLine($"[AccountancyService] Updated Report {response.ReportId} with DMS ID {response.DmsDocumentId}");
+                    return OperationResult.Succeeded($"Report {response.ReportId} updated with DMS document ID.");
+                }
+                else
+                {
+                    Console.WriteLine($"[AccountancyService] Report {response.ReportId} not found.");
+                    return OperationResult.Failed($"Report {response.ReportId} not found.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[AccountancyService] Error processing report notification: {ex.Message}");
+                return OperationResult.Failed($"Error processing report notification: {ex.Message}");
             }
         }
     }

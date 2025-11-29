@@ -8,5 +8,6 @@ namespace FoxSky.StocksSystem.Accountancy.Services
         Task<OperationResult> ProcessTradersRequestAsync(string data);
         Task<OperationResult> ProcessTradersRequestAsync(AccountancyRequestModel data);
         Task<OperationResult> ProcessReportCreatingRequestAsync(string message);
+        Task<OperationResult> ReceiveReportNotificationAsync(string data);
     }
 }

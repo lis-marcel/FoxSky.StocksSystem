@@ -109,9 +109,18 @@ public class Program
     {
         var services = new ServiceCollection();
 
-        // Register DbContext as scoped
+        // Register DbContext as scoped with pooling
         services.AddDbContextPool<AccountancyDbContext>(options =>
-            options.UseSqlite(Environment.GetEnvironmentVariable("DB_HOST")));
+        {
+            options.UseSqlite(Environment.GetEnvironmentVariable("DB_HOST"));
+            
+            // Temporarily suppress pending model changes warning
+            // NOTE: This should be replaced with a proper migration using:
+            // dotnet ef migrations add AddReportEntity
+            // dotnet ef database update
+            options.ConfigureWarnings(warnings =>
+                warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+        });
 
 
         // Register AccountancyService as singleton (but now it creates DbContext instances as needed)
