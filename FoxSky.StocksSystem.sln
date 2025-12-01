@@ -21,7 +21,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FoxSky.StocksSystem.Traders
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FoxSky.StocksService.Ceo", "src\Services\FoxSky.StocksService.CEO\FoxSky.StocksService.Ceo.csproj", "{31176669-546A-4C3A-05BD-D71DE6DC8C14}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FoxSky.StocksSystem.DMS", "src\Services\FoxSky.StocksSystem.DMS\FoxSky.StocksSystem.DMS.csproj", "{B4116D2B-8FB9-4A4B-84BA-5FA50C91641F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FoxSky.StocksSystem.Dms", "src\Services\FoxSky.StocksSystem.DMS\FoxSky.StocksSystem.Dms.csproj", "{B4116D2B-8FB9-4A4B-84BA-5FA50C91641F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

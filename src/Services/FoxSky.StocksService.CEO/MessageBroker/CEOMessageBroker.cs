@@ -1,9 +1,11 @@
 ﻿using FoxSky.StocksService.Ceo.Database.Context;
 using FoxSky.StocksService.CEO.Services;
+using FoxSky.StocksService.SharedServices.Models;
 using FoxSky.StocksSystem.SharedServices;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
+using Newtonsoft.Json;
 
 namespace FoxSky.StocksService.CEO.MessageBroker
 {
@@ -16,6 +18,8 @@ namespace FoxSky.StocksService.CEO.MessageBroker
         private readonly string _dmsExchangeName;
         private readonly string _accountancyReportRequestRoutingKey;
         private readonly string _reportNotificationRoutingKey;
+        private readonly string _reportDownloadRoutingKey;
+        private readonly string _reportDocumentRoutingKey;
         private readonly string _ceoQueueName;
         private AsyncEventingBasicConsumer? _consumer;
         private bool _disposed;
@@ -42,6 +46,11 @@ namespace FoxSky.StocksService.CEO.MessageBroker
 
             _reportNotificationRoutingKey = Environment.GetEnvironmentVariable("REPORT_NOTIFICATION_ROUTING_KEY")
                 ?? throw new InvalidOperationException("REPORT_NOTIFICATION_ROUTING_KEY environment variable is not set");
+
+            _reportDownloadRoutingKey = Environment.GetEnvironmentVariable("REPORT_DOWNLOAD_ROUTING_KEY")
+                ?? throw new InvalidOperationException("REPORT_DOWNLOAD_ROUTING_KEY environment variable is not set");
+
+            _reportDocumentRoutingKey = "ceo.report.document";
 
             var factory = new ConnectionFactory { Uri = new Uri(messageUri) };
             _connection = factory.CreateConnectionAsync().GetAwaiter().GetResult();
@@ -99,6 +108,20 @@ namespace FoxSky.StocksService.CEO.MessageBroker
                 Console.WriteLine($"[CeoService] Error binding queue: {ex.Message}");
             }
 
+            try
+            {
+                await _channel.QueueBindAsync(
+                    queue: _ceoQueueName,
+                    exchange: _dmsExchangeName,
+                    routingKey: _reportDocumentRoutingKey);
+
+                Console.WriteLine($"[CeoService] Bound queue to DMS exchange with routing key: {_reportDocumentRoutingKey}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[CeoService] Error binding queue for document routing: {ex.Message}");
+            }
+
             Console.WriteLine("[CeoService] Message queue initialization completed");
         }
 
@@ -147,7 +170,37 @@ namespace FoxSky.StocksService.CEO.MessageBroker
                     {
                         await _ceoService.ReceiveReportData(message);
                         Console.WriteLine($"[CeoService] Processed report notification message.");
-                    } 
+                        
+                        // Request document download
+                        var downloadResult = await _ceoService.DownloadReport();
+                        if (downloadResult.Success && downloadResult.Data is DocumentDownloadRequest downloadRequest)
+                        {
+                            var requestJson = JsonConvert.SerializeObject(downloadRequest);
+                            await PublishMessageAsync(
+                                exchange: _ceoExchangeName,
+                                receivcer: _reportDownloadRoutingKey,
+                                message: requestJson);
+                            Console.WriteLine($"[CeoService] Sent download request for document.");
+                        }
+                    }
+                    else if (routingKey == _reportDocumentRoutingKey)
+                    {
+                        Console.WriteLine($"[CeoService] Received document from DMS.");
+                        var documentResponse = JsonConvert.DeserializeObject<DocumentDownloadResponse>(message);
+                        
+                        if (documentResponse != null)
+                        {
+                            var saveResult = await _ceoService.SaveDocumentLocally(documentResponse);
+                            if (saveResult.Success)
+                            {
+                                Console.WriteLine($"[CeoService] Document saved successfully: {saveResult.Message}");
+                            }
+                            else
+                            {
+                                Console.WriteLine($"[CeoService] Failed to save document: {saveResult.Message}");
+                            }
+                        }
+                    }
                 }
                 catch (Exception ex)
                 {
