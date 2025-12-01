@@ -10,7 +10,7 @@ using Newtonsoft.Json;
 
 namespace FoxSky.StocksSystem.DMS.MessageBroker
 {
-    public class DMSMessageBroker : IDMSMessageBroker, IDisposable
+    public class DmsMessageBroker : IDmsMessageBroker, IDisposable
     {
         #region Fields
         private readonly IConnection _connection;
@@ -28,7 +28,7 @@ namespace FoxSky.StocksSystem.DMS.MessageBroker
         private readonly IDMSService _dmsService;
         #endregion
 
-        public DMSMessageBroker(IDMSService dmsService)
+        public DmsMessageBroker(IDMSService dmsService)
         {
             _dmsService = dmsService ?? throw new ArgumentNullException(nameof(dmsService)); ;
 
@@ -233,7 +233,7 @@ namespace FoxSky.StocksSystem.DMS.MessageBroker
         private void ThrowIfDisposed()
         {
             if (_disposed)
-                throw new ObjectDisposedException(nameof(DMSMessageBroker));
+                throw new ObjectDisposedException(nameof(DmsMessageBroker));
         }
 
         public void Dispose()

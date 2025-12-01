@@ -21,7 +21,7 @@ namespace FoxSky.StocksSystem.DMS
 
                 using (var scope = serviceProvider.CreateScope())
                 {
-                    var messageQueueHandler = scope.ServiceProvider.GetRequiredService<IDMSMessageBroker>();
+                    var messageQueueHandler = scope.ServiceProvider.GetRequiredService<IDmsMessageBroker>();
                     await messageQueueHandler.InitializeAsync();
 
                     Console.WriteLine("[DMS] Initialized. Starting to receive messages...");
@@ -57,7 +57,7 @@ namespace FoxSky.StocksSystem.DMS
             });
 
             services.AddScoped<IDMSService, DMSService>();
-            services.AddScoped<IDMSMessageBroker, DMSMessageBroker>();
+            services.AddScoped<IDmsMessageBroker, DmsMessageBroker>();
 
             return services.BuildServiceProvider(new ServiceProviderOptions
             {
