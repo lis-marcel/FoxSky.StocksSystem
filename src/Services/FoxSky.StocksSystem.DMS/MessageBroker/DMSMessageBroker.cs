@@ -25,10 +25,10 @@ namespace FoxSky.StocksSystem.DMS.MessageBroker
         private AsyncEventingBasicConsumer? _consumer;
         private bool _disposed;
         private CancellationTokenSource? _cancellationTokenSource;
-        private readonly IDMSService _dmsService;
+        private readonly IDmsService _dmsService;
         #endregion
 
-        public DmsMessageBroker(IDMSService dmsService)
+        public DmsMessageBroker(IDmsService dmsService)
         {
             _dmsService = dmsService ?? throw new ArgumentNullException(nameof(dmsService)); ;
 

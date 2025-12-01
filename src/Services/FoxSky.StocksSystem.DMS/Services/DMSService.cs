@@ -12,11 +12,11 @@ using System.Diagnostics;
 
 namespace FoxSky.StocksSystem.DMS.Services
 {
-    public class DMSService : IDMSService
+    public class DmsService : IDmsService
     {
         private readonly DMSDbContext<DmsReportModel> _dbContext;
 
-        public DMSService(DMSDbContext<DmsReportModel> dbContext)
+        public DmsService(DMSDbContext<DmsReportModel> dbContext)
         {
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
             BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.Standard));

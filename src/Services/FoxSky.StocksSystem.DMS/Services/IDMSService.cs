@@ -2,7 +2,7 @@
 
 namespace FoxSky.StocksSystem.DMS.Services
 {
-    public interface IDMSService
+    public interface IDmsService
     {
         Task<OperationResult> ProcessSaveDocumentRequestAsync(byte[] data);
     }

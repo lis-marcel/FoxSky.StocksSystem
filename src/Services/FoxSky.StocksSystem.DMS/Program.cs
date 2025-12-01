@@ -56,7 +56,7 @@ namespace FoxSky.StocksSystem.DMS
                 return new DMSDbContext<DmsReportModel>(serverAddress!, dbName!, collection!);
             });
 
-            services.AddScoped<IDMSService, DMSService>();
+            services.AddScoped<IDmsService, DmsService>();
             services.AddScoped<IDmsMessageBroker, DmsMessageBroker>();
 
             return services.BuildServiceProvider(new ServiceProviderOptions
